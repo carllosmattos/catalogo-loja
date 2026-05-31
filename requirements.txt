@@ -1,4 +1,6 @@
 streamlit>=1.32
-supabase>=2.0
+supabase==2.6.0
 python-dotenv
 Pillow
+extra-streamlit-components>=0.1.71
+pandas>=2.0

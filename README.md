@@ -1,24 +1,49 @@
-# Catálogo de Roupas — Streamlit + Supabase + WhatsApp
+# LM Moda — Catálogo Streamlit + Supabase + WhatsApp
 
-Catálogo mobile-first para Instagram, 100% gratuito. Clientes veem as peças e compram via WhatsApp com mensagem pré-preenchida. A dona da loja gerencia tudo em um painel admin com login.
+Catálogo mobile-first para Instagram. Clientes navegam, montam carrinho e finalizam pelo WhatsApp. A loja gerencia produtos, promoções, brindes, vendas e lucro em um painel admin com login.
+
+Repositório: [github.com/carllosmattos/catalogo-loja](https://github.com/carllosmattos/catalogo-loja)
+
+## Branches
+
+| Branch | Ambiente | Uso |
+|--------|----------|-----|
+| `main` | **Produção (PRD)** | Deploy no Streamlit Cloud — link na bio do Instagram |
+| `dev` | **Desenvolvimento** | Testes e novas funcionalidades antes de ir para produção |
+
+Fluxo sugerido: desenvolver em `dev` → validar → merge em `main` → redeploy automático do PRD.
 
 ## Funcionalidades
 
-- **Catálogo público** otimizado para iPhone (link na bio do Instagram)
-- **Identidade da loja**: logo, cores personalizadas, nome
-- **Produtos** com fotos, preços, estoque, frete
-- **Promoções** (% ou valor fixo)
-- **Brindes** com estoque, custo, frete e repasse ao cliente
-- **Cálculo de lucro** considerando compra, frete e brindes
-- **WhatsApp** com mensagem automática (peça, promoção, brinde, valor final)
-- **Login admin** — só a dona da loja acessa o painel
+### Catálogo público
 
-## Stack (grátis)
+- Layout mobile-first (iPhone / Instagram)
+- Identidade da loja: logo, cores, nome
+- Produtos com foto, preço, estoque, frete e descrição no card
+- Promoções (% ou valor fixo) e brindes visíveis no card
+- **Carrinho**: adicionar peças, alterar quantidade, remover
+- **Comprar agora** (item único) ou **Finalizar carrinho** via WhatsApp
+- **Minha conta**: login por telefone, nome, CPF e endereço (autofill em pedidos)
+- Mensagem WhatsApp com peças, promoções, brindes e totais
+
+### Painel admin
+
+| Página | Função |
+|--------|--------|
+| Login | Autenticação Supabase (só admin) |
+| Produtos | CRUD, fotos, estoque, arquivar / duplicar |
+| Promoções | CRUD, arquivar |
+| Brindes | CRUD com foto, estoque, arquivar |
+| Loja | Nome, logo, cores, WhatsApp |
+| Lucro & Margem | Custo, margem, potencial e realizado no mês |
+| Vendas | Registrar venda, CPF, quantidade, cancelar com estorno |
+
+## Stack
 
 | Serviço | Uso | Custo |
 |---------|-----|-------|
-| [Streamlit Community Cloud](https://share.streamlit.io) | Hospedagem do app | Grátis |
-| [Supabase](https://supabase.com) | Banco, auth, imagens | Grátis (tier free) |
+| [Streamlit Community Cloud](https://share.streamlit.io) | Hospedagem | Grátis |
+| [Supabase](https://supabase.com) | Banco, auth, storage | Grátis (tier free) |
 | WhatsApp (`wa.me`) | Pedidos | Grátis |
 
 ## Setup local
@@ -26,19 +51,32 @@ Catálogo mobile-first para Instagram, 100% gratuito. Clientes veem as peças e 
 ### 1. Clonar e instalar
 
 ```bash
-git clone <seu-repo>
-cd catalogo
+git clone https://github.com/carllosmattos/catalogo-loja.git
+cd catalogo-loja
 pip install -r requirements.txt
 ```
 
 ### 2. Configurar Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com) (plano Free)
-2. No **SQL Editor**, execute os arquivos nesta ordem:
-   - [`supabase/schema.sql`](supabase/schema.sql)
-   - [`supabase/storage.sql`](supabase/storage.sql)
-3. Em **Authentication > Users**, crie o usuário admin (e-mail e senha da dona da loja)
-4. Copie a **URL** e a **anon key** em Settings > API
+2. No **SQL Editor**, execute as migrações em ordem — veja [`supabase/README.md`](supabase/README.md):
+
+   | # | Arquivo |
+   |---|---------|
+   | 001 | `001_initial_schema.sql` — tabelas + RLS |
+   | 002 | `002_storage.sql` — bucket de fotos |
+   | 003 | `003_lm_branding.sql` — branding LM |
+   | 004 | `004_gift_image.sql` — foto do brinde |
+   | 005 | `005_sales.sql` — vendas + estoque |
+   | 006 | `006_lifecycle.sql` — arquivar / cancelar |
+   | 007 | `007_sale_quantity.sql` — quantidade por venda |
+   | 008 | `008_customers.sql` — clientes + CPF |
+   | 009 | `009_customer_address.sql` — endereço + login por telefone |
+
+3. Em **Authentication > Users**, crie o usuário admin
+4. Copie **URL** e **anon key** em Settings → API
+
+> As migrações ficam versionadas no GitHub, mas **não rodam sozinhas** — é preciso executá-las manualmente no Supabase (local e produção usam o mesmo projeto ou projetos separados, conforme sua escolha).
 
 ### 3. Secrets locais
 
@@ -49,59 +87,86 @@ SUPABASE_URL = "https://xxxxx.supabase.co"
 SUPABASE_ANON_KEY = "eyJ..."
 ```
 
+O arquivo `.streamlit/secrets.toml` está no `.gitignore` e **nunca** deve ir para o GitHub.
+
 ### 4. Rodar localmente
 
 ```bash
 streamlit run app.py
 ```
 
-- Catálogo: `http://localhost:8501`
-- Admin: `http://localhost:8501/Admin_Login`
+| Página | URL local |
+|--------|-----------|
+| Catálogo | http://localhost:8501 |
+| Admin | http://localhost:8501/Admin_Login |
 
-## Deploy grátis (Streamlit Cloud)
+## Deploy (Streamlit Cloud)
 
-1. Suba o código para um repositório **público** no GitHub
-2. Acesse [share.streamlit.io](https://share.streamlit.io) e conecte o repo
-3. Main file: `app.py`
-4. Em **Settings > Secrets**, adicione:
+### Produção (`main`)
+
+1. Conecte o repo em [share.streamlit.io](https://share.streamlit.io)
+2. Branch: **`main`**
+3. Main file: **`app.py`**
+4. Em **Settings → Secrets**:
 
 ```toml
 SUPABASE_URL = "https://xxxxx.supabase.co"
 SUPABASE_ANON_KEY = "eyJ..."
 ```
 
-5. Deploy! O link gerado vai para a bio do Instagram
+5. Confirme que todas as migrações (001–009) foram aplicadas no Supabase de produção
 
-### Links úteis após deploy
+### Desenvolvimento (`dev`) — opcional
+
+Crie um segundo app no Streamlit Cloud apontando para a branch **`dev`**, com os mesmos secrets (ou um Supabase de staging separado).
 
 | Página | URL |
 |--------|-----|
 | Catálogo (clientes) | `https://seu-app.streamlit.app/` |
-| Admin (dona da loja) | `https://seu-app.streamlit.app/Admin_Login` |
+| Admin | `https://seu-app.streamlit.app/Admin_Login` |
 
 ## Estrutura do projeto
 
 ```
 catalogo/
-├── app.py                  # Catálogo público
-├── pages/                  # Painel admin
+├── app.py                      # Catálogo público (catálogo, carrinho, minha conta)
+├── pages/                      # Painel admin
 │   ├── 1_Admin_Login.py
 │   ├── 2_Admin_Produtos.py
 │   ├── 3_Admin_Promocoes.py
 │   ├── 4_Admin_Brindes.py
 │   ├── 5_Admin_Loja.py
-│   └── 6_Admin_Lucro.py
-├── lib/                    # Lógica compartilhada
-├── supabase/schema.sql     # Schema do banco
-└── requirements.txt
+│   ├── 6_Admin_Lucro.py
+│   └── 7_Admin_Vendas.py
+├── lib/
+│   ├── auth.py                 # Login admin
+│   ├── branding.py             # Logo e identidade
+│   ├── cart.py                 # Carrinho (session)
+│   ├── catalog.py              # Produtos, promoções, brindes
+│   ├── catalog_display.py      # Cards HTML
+│   ├── customer_session.py     # Login cliente por telefone
+│   ├── customers.py            # CPF e cadastro admin
+│   ├── profit.py               # Cálculo de lucro
+│   ├── sales.py                # Registro de vendas
+│   ├── theme.py                # CSS mobile-first
+│   ├── utils.py                # CPF, moeda
+│   └── whatsapp.py             # Mensagens wa.me
+├── supabase/
+│   ├── README.md               # Ordem das migrações
+│   └── migrations/             # Scripts SQL versionados
+├── resources/                  # Assets estáticos (logo)
+├── requirements.txt
+├── CHANGELOG.md
+└── secrets.toml.example
 ```
 
 ## Fluxo de compra
 
-1. Cliente abre o link do catálogo no Instagram
-2. Escolhe uma peça e toca em **Comprar no WhatsApp**
-3. WhatsApp abre com mensagem pronta: peça, tamanho, preço, promoção, brinde e valor final
-4. Cliente envia a mensagem para a loja
+1. Cliente abre o link do catálogo (Instagram)
+2. (Opcional) Entra em **Minha conta** com telefone — dados salvos para próximos pedidos
+3. Adiciona peças ao **Carrinho** ou usa **Comprar agora** em um item
+4. Toca em **Finalizar no WhatsApp** — abre conversa com mensagem pronta
+5. Loja registra a venda no painel **Vendas** (estoque baixa automaticamente)
 
 ## Cálculo de lucro
 
@@ -113,13 +178,19 @@ preço_final = preço_catálogo - desconto + frete_cliente
 lucro = preço_final - custo_peça - custo_brindes
 ```
 
-Veja detalhes na página **Lucro & Margem** do painel admin.
+Detalhes na página **Lucro & Margem** do admin.
 
-## Limitações do tier grátis
+## Limitações do MVP
 
-- App pode demorar alguns segundos para "acordar" após inatividade
-- Supabase free: 500 MB de banco, 1 GB de storage
-- Sem pagamento online — fluxo 100% WhatsApp
+- Sem pagamento online (PIX fase 2) — fluxo 100% WhatsApp
+- Carrinho não persiste entre sessões/dispositivos
+- Venda admin registra um produto por vez (multi-item fase 2)
+- App Streamlit free pode demorar a “acordar” após inatividade
+- Supabase free: 500 MB banco, 1 GB storage
+
+## Changelog
+
+Veja [CHANGELOG.md](CHANGELOG.md) para o histórico de versões.
 
 ## Licença
 

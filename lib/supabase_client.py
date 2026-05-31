@@ -2,14 +2,44 @@
 
 from __future__ import annotations
 
+import os
+
 import streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 from supabase import Client, create_client
+
+
+def _get_credentials() -> tuple[str, str]:
+    """Lê credenciais de secrets.toml ou variáveis de ambiente."""
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_ANON_KEY")
+
+    try:
+        if not url and "SUPABASE_URL" in st.secrets:
+            url = st.secrets["SUPABASE_URL"]
+        if not key and "SUPABASE_ANON_KEY" in st.secrets:
+            key = st.secrets["SUPABASE_ANON_KEY"]
+    except StreamlitSecretNotFoundError:
+        pass
+
+    if not url or not key:
+        st.error(
+            "Configure o Supabase em `.streamlit/secrets.toml`:\n\n"
+            "```toml\n"
+            "SUPABASE_URL = \"https://seu-projeto.supabase.co\"\n"
+            "SUPABASE_ANON_KEY = \"eyJ...\"\n"
+            "```"
+        )
+        st.stop()
+
+    # Remove sufixo incorreto se colado da API REST
+    url = url.rstrip("/").removesuffix("/rest/v1")
+    return url, key
 
 
 @st.cache_resource
 def get_supabase() -> Client:
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_ANON_KEY"]
+    url, key = _get_credentials()
     return create_client(url, key)
 
 

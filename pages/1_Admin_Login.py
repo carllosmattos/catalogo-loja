@@ -2,14 +2,16 @@
 
 import streamlit as st
 
-from lib.auth import init_session, is_authenticated, login, logout, render_admin_nav
+from lib.auth import init_session, is_authenticated, login, logout, render_sidebar, restore_session
+from lib.branding import configure_page
 
-st.set_page_config(page_title="Admin — Login", page_icon="🔒", layout="centered")
+configure_page("Admin — Login", layout="centered", sidebar_state="expanded")
 
 init_session()
+restore_session()
+render_sidebar()
 
 if is_authenticated():
-    render_admin_nav()
     st.success(f"Logada como {st.session_state.auth_user['email']}")
     st.markdown("Use o menu lateral para gerenciar sua loja.")
     if st.button("Ir para Produtos"):

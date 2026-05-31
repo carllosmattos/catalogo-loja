@@ -14,6 +14,7 @@ class GiftCost:
     purchase_price: float
     purchase_freight: float
     sale_markup: float
+    image_url: str | None = None
 
     @property
     def total_cost(self) -> float:
@@ -45,6 +46,15 @@ class ProfitResult:
     gift_stock_ok: bool
 
 
+def extract_gift_from_link(link: dict[str, Any]) -> dict[str, Any] | None:
+    """Extrai dados do brinde de um vínculo product_gifts."""
+    for key in ("gift_data", "gifts", "gift"):
+        value = link.get(key)
+        if isinstance(value, dict) and value.get("id"):
+            return value
+    return None
+
+
 def apply_promotion(
     sale_price: float,
     product_id: str,
@@ -54,10 +64,10 @@ def apply_promotion(
     best_discount = 0.0
     best_name: str | None = None
 
+    pid = str(product_id)
     for promo in promotions:
-        applies = promo.get("applies_to") == "all" or product_id in (
-            promo.get("product_ids") or []
-        )
+        product_ids = [str(x) for x in (promo.get("product_ids") or [])]
+        applies = promo.get("applies_to") == "all" or pid in product_ids
         if not applies:
             continue
 
@@ -95,15 +105,19 @@ def calculate_profit(
     gift_stock_ok = True
 
     for lg in linked_gifts:
+        gift = extract_gift_from_link(lg)
+        if not gift:
+            continue
+
         qty = int(lg.get("quantity_per_sale", 1))
-        gift = lg.get("gifts") or lg
         gc = GiftCost(
-            gift_id=gift.get("id", ""),
+            gift_id=str(gift.get("id", "")),
             name=gift.get("name", "Brinde"),
             quantity=qty,
             purchase_price=float(gift.get("purchase_price", 0)),
             purchase_freight=float(gift.get("purchase_freight", 0)),
             sale_markup=float(gift.get("sale_markup", 0)),
+            image_url=gift.get("image_url"),
         )
         gift_costs.append(gc)
         custo_brindes += gc.total_cost
@@ -117,7 +131,7 @@ def calculate_profit(
     promotion_name: str | None = None
     if promotions:
         desconto, promotion_name = apply_promotion(
-            preco_catalogo, product.get("id", ""), promotions
+            preco_catalogo, str(product.get("id", "")), promotions
         )
 
     preco_final_cliente = preco_catalogo - desconto + sale_freight

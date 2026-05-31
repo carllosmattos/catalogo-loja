@@ -1,7 +1,7 @@
--- Catálogo de Roupas — Schema Supabase
--- Execute no SQL Editor do Supabase
+-- 001_initial_schema.sql
+-- Catálogo de Roupas — schema inicial
+-- Projeto novo: rode este arquivo primeiro no SQL Editor do Supabase.
 
--- Extensões
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================================
@@ -70,34 +70,9 @@ CREATE TABLE IF NOT EXISTS promotions (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Registro inicial da loja
 INSERT INTO store_settings (store_name, whatsapp_number)
 SELECT 'Minha Loja', ''
 WHERE NOT EXISTS (SELECT 1 FROM store_settings LIMIT 1);
-
--- ============================================================
--- STORAGE
--- ============================================================
--- Crie o bucket "store-assets" no painel Supabase (Storage > New bucket)
--- Marque como público para leitura de imagens do catálogo
-
--- Políticas de storage (execute após criar o bucket store-assets como público):
---
--- CREATE POLICY "Public read store assets"
--- ON storage.objects FOR SELECT
--- USING (bucket_id = 'store-assets');
---
--- CREATE POLICY "Auth upload store assets"
--- ON storage.objects FOR INSERT
--- WITH CHECK (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
---
--- CREATE POLICY "Auth update store assets"
--- ON storage.objects FOR UPDATE
--- USING (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
---
--- CREATE POLICY "Auth delete store assets"
--- ON storage.objects FOR DELETE
--- USING (bucket_id = 'store-assets' AND auth.role() = 'authenticated');
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -109,7 +84,6 @@ ALTER TABLE gifts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_gifts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE promotions ENABLE ROW LEVEL SECURITY;
 
--- Leitura pública: store_settings
 CREATE POLICY "store_settings_public_read" ON store_settings
     FOR SELECT USING (true);
 
@@ -117,7 +91,6 @@ CREATE POLICY "store_settings_auth_write" ON store_settings
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
--- Leitura pública: produtos ativos
 CREATE POLICY "products_public_read" ON products
     FOR SELECT USING (active = true);
 
@@ -125,7 +98,6 @@ CREATE POLICY "products_auth_all" ON products
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
--- Leitura pública: brindes (para exibir no catálogo)
 CREATE POLICY "gifts_public_read" ON gifts
     FOR SELECT USING (true);
 
@@ -133,7 +105,6 @@ CREATE POLICY "gifts_auth_all" ON gifts
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
--- product_gifts
 CREATE POLICY "product_gifts_public_read" ON product_gifts
     FOR SELECT USING (true);
 
@@ -141,7 +112,6 @@ CREATE POLICY "product_gifts_auth_all" ON product_gifts
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
--- promoções ativas (público)
 CREATE POLICY "promotions_public_read" ON promotions
     FOR SELECT USING (
         active = true

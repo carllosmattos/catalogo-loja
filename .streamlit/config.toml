@@ -1,9 +1,9 @@
 [theme]
-primaryColor = "#E1306C"
+primaryColor = "#C71585"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#FAFAFA"
+secondaryBackgroundColor = "#FFF5F8"
 textColor = "#262626"
-font = "sans serif"
+font = "serif"
 
 [server]
 headless = true
@@ -11,5 +11,5 @@ headless = true
 [browser]
 gatherUsageStats = false
 
-SUPABASE_URL = "https://ktvlhviikifcxbibxsas.supabase.co/rest/v1/"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0dmxodmlpa2lmY3hiaWJ4c2FzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjMyOTYsImV4cCI6MjA5NTc5OTI5Nn0.gq5pCtvHcsdONOu6XblG-pALnt1cp1BIEh0UbH8yhdE"
+[client]
+showSidebarNavigation = false

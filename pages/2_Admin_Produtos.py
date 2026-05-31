@@ -2,14 +2,16 @@
 
 import streamlit as st
 
-from lib.auth import require_auth, render_admin_nav
+from lib.auth import require_auth, render_sidebar
+from lib.branding import configure_page
 from lib.catalog import (
     create_product,
-    delete_product,
+    duplicate_product,
     fetch_all_gifts_admin,
     fetch_all_products,
     fetch_product_gifts,
     resize_image,
+    set_product_active,
     set_product_gifts,
     update_product,
     upload_image,
@@ -17,15 +19,14 @@ from lib.catalog import (
 from lib.profit import calculate_profit
 from lib.utils import format_currency
 
-st.set_page_config(page_title="Admin — Produtos", page_icon="👗", layout="wide")
+configure_page("Admin — Produtos", layout="wide", sidebar_state="expanded")
+render_sidebar()
 
 if not require_auth():
     st.stop()
-
-render_admin_nav()
 st.title("👗 Produtos")
 
-gifts = fetch_all_gifts_admin()
+gifts = fetch_all_gifts_admin(active_filter=True)
 gift_options = {g["name"]: g["id"] for g in gifts}
 
 tab_list, tab_new = st.tabs(["Lista de produtos", "Novo produto"])
@@ -126,16 +127,43 @@ with tab_new:
                     st.error(f"Erro: {e}")
 
 with tab_list:
-    products = fetch_all_products()
-    if not products:
-        st.info("Nenhum produto cadastrado.")
+    filter_opt = st.radio(
+        "Mostrar",
+        ["Ativos", "Arquivados", "Todos"],
+        horizontal=True,
+        key="product_filter",
+    )
+    active_filter = {"Ativos": True, "Arquivados": False, "Todos": None}[filter_opt]
+    all_products = fetch_all_products()
+    if active_filter is True:
+        products = [p for p in all_products if p.get("active")]
+    elif active_filter is False:
+        products = [p for p in all_products if not p.get("active")]
     else:
+        products = all_products
+
+    st.caption(
+        "Arquivar remove do catálogo; vendas passadas permanecem nos relatórios."
+    )
+    if not products:
+        st.info("Nenhum produto neste filtro.")
+    else:
+        st.caption(
+            "Duplicar cria cópia com estoque 0 — ideal para nova leva com preço/custo diferente."
+        )
         for product in products:
             status = "✅" if product["active"] else "⏸️"
             with st.expander(
                 f"{status} {product['name']} — {format_currency(float(product['sale_price']))}"
             ):
-                linked = fetch_product_gifts(product["id"])
+                if st.button("Duplicar", key=f"dup_{product['id']}"):
+                    try:
+                        duplicate_product(product["id"])
+                        st.success("Cópia criada com estoque 0!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro: {e}")
+                linked = fetch_product_gifts(product["id"], active_gifts_only=False)
                 profit = calculate_profit(product, linked)
 
                 col_img, col_form = st.columns([1, 2])
@@ -210,13 +238,18 @@ with tab_list:
                             )
 
                         current_gift_names = [
-                            lg["gifts"]["name"]
+                            lg["gift_data"]["name"]
                             for lg in linked
-                            if lg.get("gifts")
+                            if lg.get("gift_data")
                         ]
+                        edit_gift_options = dict(gift_options)
+                        for lg in linked:
+                            gd = lg.get("gift_data")
+                            if gd and gd["name"] not in edit_gift_options:
+                                edit_gift_options[gd["name"]] = gd["id"]
                         selected = st.multiselect(
                             "Brindes",
-                            options=list(gift_options.keys()),
+                            options=list(edit_gift_options.keys()),
                             default=current_gift_names,
                             key=f"gifts_{product['id']}",
                         )
@@ -226,7 +259,7 @@ with tab_list:
                                 (
                                     lg
                                     for lg in linked
-                                    if lg.get("gifts", {}).get("name") == gn
+                                    if lg.get("gift_data", {}).get("name") == gn
                                 ),
                                 None,
                             )
@@ -263,12 +296,17 @@ with tab_list:
                             unsafe_allow_html=True,
                         )
 
-                        col_save, col_del = st.columns(2)
+                        col_save, col_archive = st.columns(2)
                         with col_save:
                             save = st.form_submit_button("Salvar", use_container_width=True)
-                        with col_del:
-                            remove = st.form_submit_button(
-                                "Excluir", use_container_width=True, type="secondary"
+                        with col_archive:
+                            archive_label = (
+                                "Reativar" if not product["active"] else "Arquivar"
+                            )
+                            archive = st.form_submit_button(
+                                archive_label,
+                                use_container_width=True,
+                                type="secondary",
                             )
 
                         if save:
@@ -296,7 +334,7 @@ with tab_list:
                                 links = [
                                     {
                                         "product_id": product["id"],
-                                        "gift_id": gift_options[gn],
+                                        "gift_id": edit_gift_options[gn],
                                         "quantity_per_sale": edit_qty[gn],
                                     }
                                     for gn in selected
@@ -307,10 +345,11 @@ with tab_list:
                             except Exception as e:
                                 st.error(f"Erro: {e}")
 
-                        if remove:
+                        if archive:
                             try:
-                                delete_product(product["id"])
-                                st.success("Excluído!")
+                                set_product_active(product["id"], not product["active"])
+                                label = "reativado" if not product["active"] else "arquivado"
+                                st.success(f"Produto {label}!")
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Erro: {e}")

@@ -4,22 +4,22 @@ from datetime import datetime
 
 import streamlit as st
 
-from lib.auth import require_auth, render_admin_nav
+from lib.auth import require_auth, render_sidebar
+from lib.branding import configure_page
 from lib.catalog import (
     create_promotion,
-    delete_promotion,
     fetch_all_products,
     fetch_all_promotions,
+    set_promotion_active,
     update_promotion,
 )
 from lib.utils import format_currency
 
-st.set_page_config(page_title="Admin — Promoções", page_icon="🏷️", layout="wide")
+configure_page("Admin — Promoções", layout="wide", sidebar_state="expanded")
+render_sidebar()
 
 if not require_auth():
     st.stop()
-
-render_admin_nav()
 st.title("🏷️ Promoções")
 
 products = fetch_all_products()
@@ -83,7 +83,21 @@ with tab_new:
                     st.error(f"Erro: {e}")
 
 with tab_list:
-    promos = fetch_all_promotions()
+    filter_opt = st.radio(
+        "Mostrar",
+        ["Ativas", "Arquivadas", "Todas"],
+        horizontal=True,
+        key="promo_filter",
+    )
+    all_promos = fetch_all_promotions()
+    if filter_opt == "Ativas":
+        promos = [p for p in all_promos if p.get("active")]
+    elif filter_opt == "Arquivadas":
+        promos = [p for p in all_promos if not p.get("active")]
+    else:
+        promos = all_promos
+
+    st.caption("Desativar remove do catálogo; vendas passadas mantêm o nome da promoção.")
     if not promos:
         st.info("Nenhuma promoção cadastrada.")
     else:
@@ -147,8 +161,11 @@ with tab_list:
                     with col1:
                         save = st.form_submit_button("Salvar", use_container_width=True)
                     with col2:
-                        remove = st.form_submit_button(
-                            "Excluir", use_container_width=True, type="secondary"
+                        archive_label = "Reativar" if not promo["active"] else "Arquivar"
+                        archive = st.form_submit_button(
+                            archive_label,
+                            use_container_width=True,
+                            type="secondary",
                         )
 
                     if save:
@@ -170,10 +187,11 @@ with tab_list:
                         except Exception as e:
                             st.error(f"Erro: {e}")
 
-                    if remove:
+                    if archive:
                         try:
-                            delete_promotion(promo["id"])
-                            st.success("Excluído!")
+                            set_promotion_active(promo["id"], not promo["active"])
+                            label = "reativada" if not promo["active"] else "arquivada"
+                            st.success(f"Promoção {label}!")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Erro: {e}")
