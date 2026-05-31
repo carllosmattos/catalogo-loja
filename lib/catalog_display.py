@@ -44,12 +44,17 @@ def build_product_card_html(
     product: dict,
     profit: ProfitResult,
     out_of_stock: bool,
+    *,
+    compact: bool = False,
 ) -> str:
     urls = product.get("image_urls") or []
     card_class = "product-card out-of-stock" if out_of_stock else "product-card"
+    if compact:
+        card_class += " product-card-compact"
     has_promo = bool(profit.promotion_name and profit.desconto > 0)
     has_gifts = bool(profit.gifts)
     promo_pct = _promo_percent(profit) if has_promo else None
+    category = (product.get("category") or "").strip()
 
     html = f'<div class="{card_class}">'
 
@@ -66,42 +71,48 @@ def build_product_card_html(
     elif has_promo:
         html += '<span class="badge badge-promo">PROMO</span>'
     if has_gifts:
-        html += '<span class="badge badge-gift">🎁 BRINDE</span>'
+        html += '<span class="badge badge-gift">🎁</span>' if compact else '<span class="badge badge-gift">🎁 BRINDE</span>'
     html += "</div></div>"
 
-    # Faixa combo
-    if has_promo and has_gifts:
-        html += (
-            '<div class="combo-strip">'
-            f"<span>{profit.promotion_name}</span>"
-            '<span class="combo-dot">•</span>'
-            "<span>Brinde incluso</span>"
-            "</div>"
-        )
-    elif has_promo:
-        html += f'<div class="promo-strip">{profit.promotion_name}</div>'
-    elif has_gifts:
-        html += '<div class="gift-strip">🎁 Ganhe brinde exclusivo</div>'
+    # Faixa combo (omitida no modo compacto — badges já indicam)
+    if not compact:
+        if has_promo and has_gifts:
+            html += (
+                '<div class="combo-strip">'
+                f"<span>{profit.promotion_name}</span>"
+                '<span class="combo-dot">•</span>'
+                "<span>Brinde incluso</span>"
+                "</div>"
+            )
+        elif has_promo:
+            html += f'<div class="promo-strip">{profit.promotion_name}</div>'
+        elif has_gifts:
+            html += '<div class="gift-strip">🎁 Ganhe brinde exclusivo</div>'
 
     html += '<div class="product-info">'
+    if category:
+        html += f'<div class="product-category">{category}</div>'
     html += f'<div class="product-name">{product["name"]}</div>'
 
     if product.get("size"):
         html += f'<div class="product-size">Tam. {product["size"]}</div>'
 
     if product.get("description"):
-        html += f'<div class="product-desc">{product["description"]}</div>'
+        desc_class = "product-desc product-desc-clamp" if compact else "product-desc"
+        html += f'<div class="{desc_class}">{product["description"]}</div>'
 
     # Preço
     html += '<div class="price-block">'
     if has_promo:
-        html += f'<div class="price-old">{format_currency(profit.preco_catalogo)}</div>'
+        if not compact:
+            html += f'<div class="price-old">{format_currency(profit.preco_catalogo)}</div>'
         html += (
             f'<div class="price-current">{format_currency(profit.preco_final_cliente)}</div>'
         )
-        html += (
-            f'<div class="price-save">Economize {format_currency(profit.desconto)}</div>'
-        )
+        if not compact:
+            html += (
+                f'<div class="price-save">Economize {format_currency(profit.desconto)}</div>'
+            )
     else:
         html += (
             f'<div class="price-current solo">'
@@ -109,12 +120,17 @@ def build_product_card_html(
         )
     html += "</div>"
 
-    # Brindes em destaque
-    if has_gifts:
+    # Brindes em destaque (somente no card grande)
+    if has_gifts and not compact:
         html += '<div class="gifts-section">'
         for g in profit.gifts:
             html += _gift_card_html(g)
         html += "</div>"
+    elif has_gifts and compact:
+        gift_names = ", ".join(g.name for g in profit.gifts[:2])
+        if len(profit.gifts) > 2:
+            gift_names += "…"
+        html += f'<div class="gift-compact">🎁 {gift_names}</div>'
 
     if out_of_stock:
         html += '<div class="stock-out">Esgotado</div>'

@@ -1,5 +1,7 @@
 """Catálogo público de roupas — mobile-first para iPhone."""
 
+import math
+
 import streamlit as st
 
 from lib.branding import configure_page, get_logo_path, merge_brand_settings
@@ -15,11 +17,13 @@ from lib.cart import (
 )
 from lib.catalog import (
     fetch_active_promotions,
+    fetch_distinct_product_categories,
     fetch_product_gifts,
-    fetch_products,
+    fetch_products_page,
     fetch_store_settings,
 )
 from lib.catalog_display import build_product_card_html
+from lib.categories import fetch_categories
 from lib.customer_session import (
     customer_display_name,
     get_catalog_customer,
@@ -32,6 +36,8 @@ from lib.profit import calculate_profit
 from lib.theme import inject_theme
 from lib.utils import format_cpf, format_currency, is_valid_cpf
 from lib.whatsapp import build_cart_message, build_order_message, build_whatsapp_url
+
+CATALOG_PAGE_SIZE = 20
 
 configure_page("Catálogo", sidebar_state="collapsed")
 
@@ -65,7 +71,6 @@ if catalog_customer and catalog_customer.get("name"):
 if not whatsapp_number:
     st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
 
-products = fetch_products(active_only=True)
 promotions = fetch_active_promotions()
 
 piece_count = cart_piece_count()
@@ -251,33 +256,92 @@ elif view == "Carrinho":
 
 # ── Catálogo ────────────────────────────────────────────────
 else:
-    if not products:
-        st.info("Em breve novidades por aqui!")
+    db_categories = fetch_categories(active_only=True)
+    if db_categories:
+        filter_options = ["Todas"] + [c["name"] for c in db_categories]
+        category_ids = {
+            c["name"]: c["id"] for c in db_categories if c.get("id")
+        }
+    else:
+        text_categories = fetch_distinct_product_categories(active_only=True)
+        filter_options = ["Todas"] + text_categories
+        category_ids = {}
+
+    if "catalog_page" not in st.session_state:
+        st.session_state.catalog_page = 1
+    if "catalog_category" not in st.session_state:
+        st.session_state.catalog_category = "Todas"
+
+    st.markdown('<div class="catalog-filter-wrap">', unsafe_allow_html=True)
+    selected_category = st.radio(
+        "Categoria",
+        options=filter_options,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="catalog_category_radio",
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if selected_category != st.session_state.catalog_category:
+        st.session_state.catalog_category = selected_category
+        st.session_state.catalog_page = 1
+
+    cat_id = category_ids.get(selected_category) if selected_category != "Todas" else None
+    cat_name = selected_category if selected_category != "Todas" and not cat_id else None
+
+    page_products, total_products = fetch_products_page(
+        active_only=True,
+        category_id=cat_id,
+        category_name=cat_name,
+        page=st.session_state.catalog_page,
+        per_page=CATALOG_PAGE_SIZE,
+    )
+
+    if total_products == 0:
+        if selected_category != "Todas":
+            st.info(f"Nenhuma peça em **{selected_category}** no momento.")
+        else:
+            st.info("Em breve novidades por aqui!")
         st.stop()
 
-    for product in products:
-        linked_gifts = fetch_product_gifts(product["id"])
-        profit = calculate_profit(product, linked_gifts, promotions)
-        out_of_stock = profit.stock <= 0
-        pid = str(product["id"])
+    total_pages = max(1, math.ceil(total_products / CATALOG_PAGE_SIZE))
+    if st.session_state.catalog_page > total_pages:
+        st.session_state.catalog_page = total_pages
+        st.rerun()
 
-        st.markdown(
-            build_product_card_html(product, profit, out_of_stock),
-            unsafe_allow_html=True,
-        )
+    start_idx = (st.session_state.catalog_page - 1) * CATALOG_PAGE_SIZE + 1
+    end_idx = min(st.session_state.catalog_page * CATALOG_PAGE_SIZE, total_products)
+    st.markdown(
+        f'<div class="catalog-pagination">'
+        f"{start_idx}–{end_idx} de {total_products} peça(s)"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
 
-        if out_of_stock:
-            st.button(
-                "Indisponível",
-                disabled=True,
-                use_container_width=True,
-                key=f"unavail_{pid}",
+    def _render_product_cell(product: dict, col) -> None:
+        with col:
+            linked_gifts = fetch_product_gifts(product["id"])
+            profit = calculate_profit(product, linked_gifts, promotions)
+            out_of_stock = profit.stock <= 0
+            pid = str(product["id"])
+
+            st.markdown(
+                build_product_card_html(
+                    product, profit, out_of_stock, compact=True
+                ),
+                unsafe_allow_html=True,
             )
-        else:
-            col_add, col_buy = st.columns(2)
-            with col_add:
+
+            if out_of_stock:
+                st.button(
+                    "Indisponível",
+                    disabled=True,
+                    use_container_width=True,
+                    key=f"unavail_{pid}",
+                )
+            else:
                 if st.button(
-                    "Adicionar ao carrinho",
+                    "Adicionar",
                     key=f"add_{pid}",
                     use_container_width=True,
                 ):
@@ -287,14 +351,13 @@ else:
                         st.rerun()
                     else:
                         st.error("Estoque insuficiente.")
-            with col_buy:
                 if whatsapp_number:
                     message = build_order_message(
                         product, profit, store_name, catalog_customer
                     )
                     wa_url = build_whatsapp_url(whatsapp_number, message)
                     st.link_button(
-                        "Comprar agora",
+                        "Comprar",
                         wa_url,
                         use_container_width=True,
                         type="primary",
@@ -302,14 +365,52 @@ else:
                     )
                 else:
                     st.button(
-                        "Comprar agora",
+                        "Comprar",
                         disabled=True,
                         use_container_width=True,
                         key=f"buy_off_{pid}",
                         help="WhatsApp da loja não configurado",
                     )
 
-        st.markdown("")
+    for row_start in range(0, len(page_products), 2):
+        col_left, col_right = st.columns(2, gap="small")
+        _render_product_cell(page_products[row_start], col_left)
+        if row_start + 1 < len(page_products):
+            _render_product_cell(page_products[row_start + 1], col_right)
+
+    st.markdown(
+        f'<div class="catalog-pagination">'
+        f"Página {st.session_state.catalog_page} de {total_pages}"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    nav_prev, nav_mid, nav_next = st.columns([1, 2, 1])
+    with nav_prev:
+        if st.button(
+            "← Anterior",
+            disabled=st.session_state.catalog_page <= 1,
+            use_container_width=True,
+            key="catalog_prev_page",
+        ):
+            st.session_state.catalog_page -= 1
+            st.rerun()
+    with nav_mid:
+        st.markdown(
+            f"<p style='text-align:center;margin:0.4rem 0;color:#666;"
+            f"font-size:0.85rem;'>"
+            f"{st.session_state.catalog_page} / {total_pages}</p>",
+            unsafe_allow_html=True,
+        )
+    with nav_next:
+        if st.button(
+            "Próxima →",
+            disabled=st.session_state.catalog_page >= total_pages,
+            use_container_width=True,
+            key="catalog_next_page",
+        ):
+            st.session_state.catalog_page += 1
+            st.rerun()
 
 st.markdown("---")
 st.caption(f"Catálogo {store_name} · Compre pelo WhatsApp")

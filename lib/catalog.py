@@ -44,6 +44,63 @@ def fetch_products(active_only: bool = True) -> list[dict[str, Any]]:
     return query.execute().data or []
 
 
+def fetch_products_page(
+    *,
+    active_only: bool = True,
+    category_id: str | None = None,
+    category_name: str | None = None,
+    page: int = 1,
+    per_page: int = 20,
+) -> tuple[list[dict[str, Any]], int]:
+    """Retorna (produtos da página, total de registros)."""
+    page = max(1, page)
+    per_page = max(1, per_page)
+    start = (page - 1) * per_page
+    end = start + per_page - 1
+
+    try:
+        client = get_supabase()
+        query = (
+            client.table("products")
+            .select("*", count="exact")
+            .order("created_at", desc=True)
+        )
+        if active_only:
+            query = query.eq("active", True)
+        if category_id:
+            query = query.eq("category_id", category_id)
+        elif category_name:
+            query = query.eq("category", category_name)
+
+        result = query.range(start, end).execute()
+        total = result.count if result.count is not None else len(result.data or [])
+        return result.data or [], total
+    except Exception:
+        products = fetch_products(active_only=active_only)
+        if category_name:
+            products = [
+                p
+                for p in products
+                if (p.get("category") or "").strip() == category_name
+            ]
+        total = len(products)
+        return products[start : start + per_page], total
+
+
+def fetch_distinct_product_categories(active_only: bool = True) -> list[str]:
+    """Fallback quando a tabela categories ainda não existe."""
+    products = fetch_products(active_only=active_only)
+    names = sorted(
+        {
+            (p.get("category") or "").strip()
+            for p in products
+            if (p.get("category") or "").strip()
+        },
+        key=str.lower,
+    )
+    return names
+
+
 def fetch_all_products() -> list[dict[str, Any]]:
     client = get_authenticated_client()
     return (
@@ -88,6 +145,7 @@ def duplicate_product(product_id: str) -> dict[str, Any]:
             "name": f"{source['name']} (cópia)",
             "description": source.get("description", ""),
             "category": source.get("category", ""),
+            "category_id": source.get("category_id"),
             "size": source.get("size", ""),
             "image_urls": list(source.get("image_urls") or []),
             "purchase_price": source.get("purchase_price", 0),

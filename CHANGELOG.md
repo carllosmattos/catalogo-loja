@@ -4,6 +4,25 @@ Todas as mudanças relevantes deste projeto estão documentadas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [1.1.0] — 2026-05-31
+
+Catálogo com categorias, grade em 2 colunas e paginação.
+
+### Adicionado
+
+- **Categorias** — tabela `categories`, migração `010`, aba no admin de produtos
+- **Filtro por categoria** no catálogo público (pills horizontais com scroll)
+- **Grade 2 colunas** com cards compactos (textos com clamp, sem quebra feia)
+- **Paginação** de 20 produtos por página (Anterior / Próxima)
+- Fallback por texto `products.category` quando a migração 010 ainda não rodou
+
+### Alterado
+
+- Admin de produtos usa select de categorias (em vez de texto livre, quando disponível)
+- Largura máxima do catálogo ampliada para acomodar 2 colunas
+
+---
+
 ## [1.0.0] — 2026-05-31
 
 Primeira versão completa do MVP — catálogo LM moda feminina em produção.
@@ -58,5 +77,6 @@ Versão inicial do repositório.
 - Admin: produtos, promoções, brindes, loja e lucro
 - Schema SQL monolítico (`schema.sql`, `storage.sql`)
 
-[1.0.0]: https://github.com/carllosmattos/catalogo-loja/compare/06d5e0e...main
+[1.1.0]: https://github.com/carllosmattos/catalogo-loja/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/carllosmattos/catalogo-loja/compare/06d5e0e...v1.0.0
 [0.1.0]: https://github.com/carllosmattos/catalogo-loja/commit/06d5e0e

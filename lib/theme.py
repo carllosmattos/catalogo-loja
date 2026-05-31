@@ -42,7 +42,151 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         .block-container {{
             padding-top: 2.5rem;
             padding-bottom: 2rem;
-            max-width: 480px;
+            max-width: 720px;
+        }}
+
+        .catalog-grid-row {{
+            margin-bottom: 0.5rem;
+        }}
+
+        div[data-testid="column"] .product-card {{
+            margin-bottom: 0.65rem;
+            height: 100%;
+        }}
+
+        .product-card-compact {{
+            box-shadow: 0 2px 12px rgba(199, 21, 133, 0.1);
+        }}
+
+        .product-card-compact .product-photo-empty {{
+            min-height: 120px;
+        }}
+
+        .product-card-compact .product-badges {{
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            gap: 4px;
+        }}
+
+        .product-card-compact .badge {{
+            padding: 0.3rem 0.5rem;
+            font-size: 0.72rem;
+        }}
+
+        .product-card-compact .product-info {{
+            padding: 0.65rem 0.7rem 0.75rem;
+        }}
+
+        .product-category {{
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--secondary);
+            margin-bottom: 0.2rem;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }}
+
+        .product-card-compact .product-name {{
+            font-size: 0.92rem;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }}
+
+        .product-card-compact .product-size {{
+            font-size: 0.78rem;
+        }}
+
+        .product-desc-clamp {{
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 0.8rem;
+            margin-top: 0.35rem;
+            padding-top: 0.35rem;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }}
+
+        .product-card-compact .price-block {{
+            margin-top: 0.5rem;
+            padding: 0.45rem 0.55rem;
+        }}
+
+        .product-card-compact .price-current {{
+            font-size: 1.05rem;
+        }}
+
+        .gift-compact {{
+            margin-top: 0.4rem;
+            font-size: 0.72rem;
+            color: var(--primary);
+            font-weight: 600;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            line-height: 1.3;
+        }}
+
+        .product-card-compact .stock-out {{
+            margin-top: 0.45rem;
+            font-size: 0.78rem;
+            padding: 0.35rem;
+        }}
+
+        .catalog-filter-wrap {{
+            margin-bottom: 0.75rem;
+        }}
+
+        div[role="radiogroup"].catalog-categories {{
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            justify-content: flex-start !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.25rem;
+        }}
+
+        div[role="radiogroup"].catalog-categories label {{
+            flex-shrink: 0;
+            white-space: nowrap;
+            font-size: 0.82rem !important;
+            padding: 0.3rem 0.75rem !important;
+        }}
+
+        .catalog-filter-wrap div[role="radiogroup"] {{
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            justify-content: flex-start !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.25rem;
+        }}
+
+        .catalog-filter-wrap div[role="radiogroup"] label {{
+            flex-shrink: 0;
+            white-space: nowrap;
+            font-size: 0.82rem !important;
+            padding: 0.3rem 0.75rem !important;
+        }}
+
+        .catalog-pagination {{
+            text-align: center;
+            color: #666;
+            font-size: 0.88rem;
+            margin: 0.5rem 0 0.75rem;
+        }}
+
+        div[data-testid="column"] div.stButton > button,
+        div[data-testid="column"] a[data-testid="stLinkButton"] {{
+            font-size: 0.78rem !important;
+            padding: 0.35rem 0.5rem !important;
+            min-height: 2rem;
         }}
 
         .store-header {{
@@ -176,6 +320,8 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             font-size: 1.15rem;
             color: #262626;
             line-height: 1.3;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }}
 
         .product-size {{
@@ -191,6 +337,8 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             margin-top: 0.5rem;
             padding-top: 0.5rem;
             border-top: 1px solid #f0f0f0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }}
 
         .price-block {{

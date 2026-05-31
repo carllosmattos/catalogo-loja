@@ -24,6 +24,8 @@ Fluxo sugerido: desenvolver em `dev` → validar → merge em `main` → redeplo
 - **Carrinho**: adicionar peças, alterar quantidade, remover
 - **Comprar agora** (item único) ou **Finalizar carrinho** via WhatsApp
 - **Minha conta**: login por telefone, nome, CPF e endereço (autofill em pedidos)
+- **Filtro por categoria** e **paginação** (20 peças por página)
+- **Grade 2 colunas** no catálogo (mobile-friendly)
 - Mensagem WhatsApp com peças, promoções, brindes e totais
 
 ### Painel admin
@@ -72,6 +74,7 @@ pip install -r requirements.txt
    | 007 | `007_sale_quantity.sql` — quantidade por venda |
    | 008 | `008_customers.sql` — clientes + CPF |
    | 009 | `009_customer_address.sql` — endereço + login por telefone |
+   | 010 | `010_categories.sql` — categorias + filtro no catálogo |
 
 3. Em **Authentication > Users**, crie o usuário admin
 4. Copie **URL** e **anon key** em Settings → API

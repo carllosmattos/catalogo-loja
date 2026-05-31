@@ -16,6 +16,13 @@ from lib.catalog import (
     update_product,
     upload_image,
 )
+from lib.categories import (
+    category_choices,
+    create_category,
+    fetch_all_categories_admin,
+    set_category_active,
+    update_category,
+)
 from lib.profit import calculate_profit
 from lib.utils import format_currency
 
@@ -28,14 +35,47 @@ st.title("👗 Produtos")
 
 gifts = fetch_all_gifts_admin(active_filter=True)
 gift_options = {g["name"]: g["id"] for g in gifts}
+admin_categories = fetch_all_categories_admin(active_filter=True)
+category_options = category_choices(admin_categories)
 
-tab_list, tab_new = st.tabs(["Lista de produtos", "Novo produto"])
+
+def _category_fields(
+    key_prefix: str,
+    default_name: str = "",
+    default_id: str | None = None,
+) -> tuple[str | None, str]:
+    if category_options:
+        names = list(category_options.keys())
+        default_name = default_name or (names[0] if names else "")
+        if default_name not in names and default_id:
+            for name, cid in category_options.items():
+                if cid == default_id:
+                    default_name = name
+                    break
+        idx = names.index(default_name) if default_name in names else 0
+        picked = st.selectbox(
+            "Categoria",
+            options=names,
+            index=idx,
+            key=f"{key_prefix}_cat",
+        )
+        return category_options[picked], picked
+    return None, st.text_input(
+        "Categoria",
+        value=default_name,
+        placeholder="Ex: Vestidos, Blusas",
+        key=f"{key_prefix}_cat_text",
+    )
+
+tab_list, tab_new, tab_cats = st.tabs(
+    ["Lista de produtos", "Novo produto", "Categorias"]
+)
 
 with tab_new:
     with st.form("new_product"):
         name = st.text_input("Nome da peça")
         description = st.text_area("Descrição")
-        category = st.text_input("Categoria", placeholder="Ex: Vestidos, Blusas")
+        category_id, category = _category_fields("new")
         size = st.text_input("Tamanho", placeholder="Ex: P, M, G")
 
         col1, col2 = st.columns(2)
@@ -99,6 +139,7 @@ with tab_new:
                             "name": name,
                             "description": description,
                             "category": category,
+                            "category_id": category_id,
                             "size": size,
                             "image_urls": image_urls,
                             "purchase_price": purchase_price,
@@ -182,10 +223,10 @@ with tab_list:
                             value=product.get("description", ""),
                             key=f"d_{product['id']}",
                         )
-                        category = st.text_input(
-                            "Categoria",
-                            value=product.get("category", ""),
-                            key=f"c_{product['id']}",
+                        category_id, category = _category_fields(
+                            f"edit_{product['id']}",
+                            default_name=product.get("category", ""),
+                            default_id=product.get("category_id"),
                         )
                         size = st.text_input(
                             "Tamanho",
@@ -315,6 +356,7 @@ with tab_list:
                                     "name": name,
                                     "description": description,
                                     "category": category,
+                                    "category_id": category_id,
                                     "size": size,
                                     "purchase_price": purchase_price,
                                     "purchase_freight": purchase_freight,
@@ -353,3 +395,78 @@ with tab_list:
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Erro: {e}")
+
+with tab_cats:
+    st.caption(
+        "Categorias aparecem no filtro do catálogo. "
+        "Rode a migração `010_categories.sql` no Supabase se a aba estiver vazia."
+    )
+    with st.form("new_category"):
+        new_cat_name = st.text_input("Nova categoria")
+        new_cat_order = st.number_input("Ordem", min_value=0, value=0, step=1)
+        if st.form_submit_button("Cadastrar categoria", use_container_width=True):
+            if not new_cat_name.strip():
+                st.error("Informe o nome da categoria.")
+            else:
+                try:
+                    create_category(new_cat_name.strip(), int(new_cat_order))
+                    st.success("Categoria criada!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro: {e}")
+
+    all_cats = fetch_all_categories_admin(active_filter=None)
+    if not all_cats:
+        st.info(
+            "Nenhuma categoria cadastrada. Execute `010_categories.sql` no Supabase "
+            "ou cadastre acima."
+        )
+    else:
+        for cat in all_cats:
+            status = "✅" if cat.get("active") else "⏸️"
+            with st.expander(f"{status} {cat['name']}"):
+                with st.form(f"edit_cat_{cat['id']}"):
+                    cat_name = st.text_input(
+                        "Nome",
+                        value=cat["name"],
+                        key=f"cn_{cat['id']}",
+                    )
+                    cat_order = st.number_input(
+                        "Ordem",
+                        min_value=0,
+                        value=int(cat.get("sort_order") or 0),
+                        step=1,
+                        key=f"co_{cat['id']}",
+                    )
+                    cat_active = st.checkbox(
+                        "Ativa no catálogo",
+                        value=cat.get("active", True),
+                        key=f"ca_{cat['id']}",
+                    )
+                    save_cat = st.form_submit_button("Salvar", use_container_width=True)
+                    archive_cat = st.form_submit_button(
+                        "Arquivar" if cat.get("active") else "Reativar",
+                        use_container_width=True,
+                    )
+                    if save_cat:
+                        try:
+                            update_category(
+                                cat["id"],
+                                {
+                                    "name": cat_name.strip(),
+                                    "sort_order": int(cat_order),
+                                    "active": cat_active,
+                                },
+                            )
+                            st.success("Categoria atualizada!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro: {e}")
+                    if archive_cat:
+                        try:
+                            set_category_active(cat["id"], not cat.get("active", True))
+                            st.success("Categoria atualizada!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro: {e}")
+
