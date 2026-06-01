@@ -1,6 +1,6 @@
 """Catálogo público de roupas — mobile-first para iPhone."""
 
-import math
+import hashlib
 
 import streamlit as st
 
@@ -23,6 +23,7 @@ from lib.catalog import (
     fetch_products_page,
     fetch_store_settings,
 )
+from lib.infinite_scroll import render_back_to_top, render_infinite_scroll_trigger
 from lib.catalog_display import build_product_card_html, render_catalog_header
 from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
@@ -52,12 +53,16 @@ except Exception as e:
     st.info("Tente novamente em alguns instantes.")
     st.stop()
 
-inject_theme(settings, hide_sidebar=True)
+inject_theme(settings, hide_sidebar=True, catalog_menu=True)
 
 store_name = settings["store_name"]
 whatsapp_number = settings.get("whatsapp_number", "")
 catalog_customer = get_catalog_customer()
 promotions = fetch_active_promotions()
+
+piece_count = cart_piece_count()
+nav_options = ["Catálogo", "Carrinho", "Minha conta"]
+view = render_catalog_nav(nav_options, cart_count=piece_count, store_name=store_name)
 
 render_catalog_header(settings, promotions)
 render_store_social_bar()
@@ -70,10 +75,6 @@ if catalog_customer and catalog_customer.get("name"):
 
 if not whatsapp_number:
     st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
-
-piece_count = cart_piece_count()
-nav_options = ["Catálogo", "Carrinho", "Minha conta"]
-view = render_catalog_nav(nav_options, cart_count=piece_count)
 
 # ── Minha conta ─────────────────────────────────────────────
 if view == "Minha conta":
@@ -246,6 +247,8 @@ elif view == "Carrinho":
 
 # ── Catálogo ────────────────────────────────────────────────
 else:
+    st.markdown('<div id="catalog-top"></div>', unsafe_allow_html=True)
+
     db_categories = fetch_categories(active_only=True)
     if db_categories:
         filter_options = ["Todas"] + [c["name"] for c in db_categories]
@@ -257,20 +260,38 @@ else:
         filter_options = ["Todas"] + text_categories
         category_ids = {}
 
-    if "catalog_page" not in st.session_state:
-        st.session_state.catalog_page = 1
+    if "catalog_limit" not in st.session_state:
+        st.session_state.catalog_limit = CATALOG_PAGE_SIZE
 
     selected_category = render_category_filter(filter_options)
 
     cat_id = category_ids.get(selected_category) if selected_category != "Todas" else None
     cat_name = selected_category if selected_category != "Todas" and not cat_id else None
+    filter_key = hashlib.sha1(f"{cat_id}:{cat_name}".encode()).hexdigest()[:16]
+
+    if st.session_state.get("catalog_filter_key") != filter_key:
+        st.session_state.catalog_filter_key = filter_key
+        st.session_state.catalog_limit = CATALOG_PAGE_SIZE
+
+    qp = st.query_params
+    req_limit = qp.get("cl")
+    req_key = qp.get("ck")
+    if req_key == filter_key and req_limit:
+        try:
+            new_limit = int(req_limit)
+            if new_limit > st.session_state.catalog_limit:
+                st.session_state.catalog_limit = new_limit
+                st.query_params.clear()
+                st.rerun()
+        except ValueError:
+            pass
 
     page_products, total_products = fetch_products_page(
         active_only=True,
         category_id=cat_id,
         category_name=cat_name,
-        page=st.session_state.catalog_page,
-        per_page=CATALOG_PAGE_SIZE,
+        page=1,
+        per_page=st.session_state.catalog_limit,
     )
 
     if total_products == 0:
@@ -280,15 +301,9 @@ else:
             st.info("Em breve novidades por aqui!")
         st.stop()
 
-    total_pages = max(1, math.ceil(total_products / CATALOG_PAGE_SIZE))
-    if st.session_state.catalog_page > total_pages:
-        st.session_state.catalog_page = total_pages
-        st.rerun()
-
-    start_idx = (st.session_state.catalog_page - 1) * CATALOG_PAGE_SIZE + 1
-    end_idx = min(st.session_state.catalog_page * CATALOG_PAGE_SIZE, total_products)
+    shown = len(page_products)
     st.markdown(
-        f'<p class="catalog-count">{start_idx}–{end_idx} de {total_products} peça(s)</p>',
+        f'<p class="catalog-count">{shown} de {total_products} peça(s)</p>',
         unsafe_allow_html=True,
     )
 
@@ -396,33 +411,18 @@ else:
         if row_start + 1 < len(page_products):
             _render_product_cell(page_products[row_start + 1], col_right)
 
-    st.markdown('<span class="catalog-pager-anchor"></span>', unsafe_allow_html=True)
-    pg_prev, pg_mid, pg_next = st.columns([1, 1.2, 1], gap="small")
-    with pg_prev:
-        if st.button(
-            "◀",
-            disabled=st.session_state.catalog_page <= 1,
-            use_container_width=True,
-            key="catalog_prev_page",
-        ):
-            st.session_state.catalog_page -= 1
-            st.rerun()
-    with pg_mid:
-        st.markdown(
-            f'<p class="catalog-pager-label">'
-            f'{st.session_state.catalog_page} / {total_pages}'
-            f"</p>",
-            unsafe_allow_html=True,
-        )
-    with pg_next:
-        if st.button(
-            "▶",
-            disabled=st.session_state.catalog_page >= total_pages,
-            use_container_width=True,
-            key="catalog_next_page",
-        ):
-            st.session_state.catalog_page += 1
-            st.rerun()
+    if shown < total_products:
+        next_limit = min(st.session_state.catalog_limit + CATALOG_PAGE_SIZE, total_products)
+        if next_limit > st.session_state.catalog_limit:
+            render_infinite_scroll_trigger(
+                next_limit=next_limit,
+                filter_key=filter_key,
+            )
+        st.caption("Role para carregar mais peças…")
+    elif shown >= CATALOG_PAGE_SIZE:
+        st.caption("Fim do catálogo nesta categoria.")
+
+    render_back_to_top()
 
 st.markdown("---")
 st.caption(f"Catálogo {store_name} · Compre pelo WhatsApp")

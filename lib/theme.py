@@ -8,7 +8,12 @@ import streamlit as st
 from lib.branding import DEFAULT_SETTINGS as DEFAULT_COLORS
 
 
-def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
+def inject_theme(
+    settings: dict | None = None,
+    hide_sidebar: bool = False,
+    *,
+    catalog_menu: bool = False,
+):
     primary = (settings or {}).get("primary_color", DEFAULT_COLORS["primary_color"])
     secondary = (settings or {}).get(
         "secondary_color", DEFAULT_COLORS["secondary_color"]
@@ -16,7 +21,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
     accent = (settings or {}).get("accent_color", DEFAULT_COLORS["accent_color"])
 
     sidebar_css = ""
-    if hide_sidebar:
+    if hide_sidebar and not catalog_menu:
         sidebar_css = """
         [data-testid="stSidebar"] { display: none !important; }
         [data-testid="collapsedControl"] { display: none !important; }
@@ -26,6 +31,66 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         [data-testid="stDecoration"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
+        """
+    elif catalog_menu:
+        sidebar_css = """
+        [data-testid="stHeader"] { display: none !important; }
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stDecoration"] { display: none !important; }
+        #MainMenu { visibility: hidden !important; }
+        footer { visibility: hidden !important; }
+
+        [data-testid="stSidebar"] {{
+            background: linear-gradient(180deg, #fff 0%, #fff8fb 100%);
+            border-right: 1px solid #f0e0ea;
+            min-width: 240px !important;
+            max-width: min(82vw, 300px) !important;
+        }}
+
+        [data-testid="stSidebar"] > div:first-child {{
+            padding-top: 1.25rem;
+        }}
+
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"] {{
+            color: var(--primary) !important;
+            z-index: 99999 !important;
+        }}
+
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="collapsedControl"] button {{
+            color: var(--primary) !important;
+            border: 1px solid #f0e0ea !important;
+            border-radius: 8px !important;
+            background: #fff !important;
+            box-shadow: 0 2px 8px rgba(199, 21, 133, 0.12) !important;
+        }}
+
+        .catalog-sidebar-store {{
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 0.15rem;
+            font-family: Georgia, "Times New Roman", serif;
+        }}
+
+        .catalog-sidebar-heading {{
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #999;
+            margin: 0 0 0.65rem;
+        }}
+
+        [data-testid="stSidebar"] .catalog-sidebar-menu button {{
+            font-size: 0.88rem !important;
+            min-height: 2.35rem !important;
+            margin-bottom: 0.35rem !important;
+            border-radius: 10px !important;
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }}
         """
 
     st.markdown(
@@ -283,8 +348,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         }}
 
         .size-picker-anchor,
-        .product-actions-anchor,
-        .catalog-pager-anchor {{
+        .product-actions-anchor {{
             display: none;
         }}
 
@@ -324,29 +388,26 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             line-height: 1.15 !important;
         }}
 
-        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] {{
-            max-width: 11rem;
-            margin: 0.5rem auto 0.75rem !important;
-            gap: 0.25rem !important;
+        .catalog-back-top {{
+            position: fixed;
+            bottom: 1.1rem;
+            right: 1rem;
+            z-index: 99990;
+            width: 2.5rem;
+            height: 2.5rem;
+            border: none;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(199, 21, 133, 0.35);
         }}
 
-        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
-            padding: 0 0.12rem !important;
-        }}
-
-        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] button {{
-            font-size: 0.85rem !important;
-            min-height: 1.85rem !important;
-            padding: 0.15rem !important;
-            border-radius: 8px !important;
-        }}
-
-        .catalog-pager-label {{
-            text-align: center;
-            font-size: 0.75rem;
-            color: #666;
-            margin: 0.42rem 0 0;
-            line-height: 1.2;
+        .catalog-back-top:active {{
+            transform: scale(0.96);
         }}
 
         div[data-testid="column"] div.stButton > button,

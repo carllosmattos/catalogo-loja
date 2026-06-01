@@ -1,41 +1,62 @@
-"""Navegação compacta do catálogo público."""
+"""Navegação do catálogo público — menu lateral (sidebar)."""
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
+
+NAV_ICONS = {
+    "Catálogo": "🏷️",
+    "Carrinho": "🛒",
+    "Minha conta": "👤",
+}
+
+
+def _nav_label(option: str, cart_count: int) -> str:
+    if option == "Carrinho" and cart_count > 0:
+        return f"Carrinho ({cart_count})"
+    return option
 
 
 def render_catalog_nav(
     options: list[str],
     *,
     cart_count: int = 0,
+    store_name: str = "",
 ) -> str:
-    """Barra de abas compacta (3 colunas). Retorna a view ativa."""
+    """Menu lateral (abre/fecha pelo ícone ☰). Retorna a view ativa."""
     if "catalog_view" not in st.session_state:
         st.session_state.catalog_view = options[0]
 
-    labels = []
-    for opt in options:
-        if opt == "Carrinho" and cart_count > 0:
-            labels.append(f"Carrinho ({cart_count})")
-        else:
-            labels.append(opt)
+    current = st.session_state.catalog_view
 
-    st.markdown('<div class="catalog-nav-compact">', unsafe_allow_html=True)
-    cols = st.columns(len(options))
-    for col, opt, label in zip(cols, options, labels):
-        with col:
-            active = st.session_state.catalog_view == opt
+    with st.sidebar:
+        st.markdown('<div class="catalog-sidebar-menu">', unsafe_allow_html=True)
+        if store_name:
+            st.markdown(
+                f'<p class="catalog-sidebar-store">{html.escape(store_name)}</p>',
+                unsafe_allow_html=True,
+            )
+        st.markdown('<p class="catalog-sidebar-heading">Menu</p>', unsafe_allow_html=True)
+
+        for opt in options:
+            label = _nav_label(opt, cart_count)
+            icon = NAV_ICONS.get(opt, "•")
+            active = current == opt
             if st.button(
-                label,
+                f"{icon}  {label}",
                 key=f"catalog_nav_{opt}",
                 use_container_width=True,
                 type="primary" if active else "secondary",
             ):
                 if st.session_state.catalog_view != opt:
                     st.session_state.catalog_view = opt
+                    if opt == "Catálogo":
+                        st.session_state.catalog_limit = 20
                     st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     return st.session_state.catalog_view
 
@@ -69,7 +90,7 @@ def render_category_filter(
 
     if selected != st.session_state[session_key]:
         st.session_state[session_key] = selected
-        st.session_state.catalog_page = 1
+        st.session_state.catalog_limit = 20
         st.rerun()
 
     return st.session_state[session_key]
