@@ -339,7 +339,10 @@ else:
             )
 
             if not all_oos:
-                st.markdown('<span class="size-picker-anchor"></span>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<span class="size-picker-anchor" data-pid="{pid}"></span>',
+                    unsafe_allow_html=True,
+                )
                 sz_cols = st.columns(3, gap="small")
                 for sz, scol in zip(SIZES, sz_cols):
                     qty = stock_for_size(sizes, sz)
@@ -369,13 +372,17 @@ else:
             elif not profit.gift_stock_ok:
                 st.warning("Brinde indisponível no momento.")
             else:
-                st.markdown('<span class="product-actions-anchor"></span>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<span class="product-actions-anchor" data-pid="{pid}"></span>',
+                    unsafe_allow_html=True,
+                )
                 act_add, act_buy = st.columns(2, gap="small")
                 with act_add:
                     if st.button(
                         "Adicionar",
                         key=f"add_{pid}_{selected_size}",
                         use_container_width=True,
+                        help="Adicionar ao carrinho",
                     ):
                         item = cart_item_from_product(product, profit, selected_size)
                         if add_to_cart(item):

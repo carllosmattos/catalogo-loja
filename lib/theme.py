@@ -352,40 +352,59 @@ def inject_theme(
             display: none;
         }}
 
-        .size-picker-anchor + div[data-testid="stHorizontalBlock"] {{
+        /* Streamlit empilha colunas no mobile — forçar linha horizontal */
+        @media (max-width: 768px) {{
+            section.main .block-container div[data-testid="stHorizontalBlock"] {{
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                width: 100% !important;
+                gap: 0.25rem !important;
+            }}
+
+            section.main .block-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
+                flex: 1 1 0% !important;
+                min-width: 0 !important;
+                width: auto !important;
+                max-width: none !important;
+            }}
+        }}
+
+        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] {{
             gap: 0.2rem !important;
             margin: 0.15rem 0 0.25rem !important;
         }}
 
-        .size-picker-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
-            padding: 0 0.08rem !important;
+        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
+            padding: 0 0.06rem !important;
             min-width: 0 !important;
         }}
 
-        .size-picker-anchor + div[data-testid="stHorizontalBlock"] button {{
+        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] button {{
             font-size: 0.62rem !important;
-            min-height: 1.45rem !important;
-            padding: 0.12rem 0.05rem !important;
+            min-height: 1.4rem !important;
+            padding: 0.1rem 0.05rem !important;
             line-height: 1.1 !important;
             border-radius: 6px !important;
+            white-space: nowrap !important;
         }}
 
-        .product-actions-anchor + div[data-testid="stHorizontalBlock"] {{
+        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] {{
             gap: 0.25rem !important;
             margin-top: 0.15rem !important;
         }}
 
-        .product-actions-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
-            padding: 0 0.1rem !important;
+        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
+            padding: 0 0.08rem !important;
             min-width: 0 !important;
         }}
 
-        .product-actions-anchor + div[data-testid="stHorizontalBlock"] button,
-        .product-actions-anchor + div[data-testid="stHorizontalBlock"] a {{
-            font-size: 0.68rem !important;
-            min-height: 1.75rem !important;
-            padding: 0.22rem 0.15rem !important;
+        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] button,
+        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] a {{
+            font-size: 0.65rem !important;
+            min-height: 1.7rem !important;
+            padding: 0.2rem 0.1rem !important;
             line-height: 1.15 !important;
+            white-space: nowrap !important;
         }}
 
         .catalog-back-top {{
