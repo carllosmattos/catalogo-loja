@@ -200,12 +200,14 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         }}
 
         .store-social-link {{
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
             font-size: 0.72rem;
             font-weight: 600;
             color: var(--primary);
             text-decoration: none;
-            padding: 0.12rem 0.45rem;
+            padding: 0.2rem 0.55rem;
             border-radius: 999px;
             background: #fff5f8;
             border: 1px solid #f0e0ea;
@@ -214,6 +216,42 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         .store-social-link:hover {{
             color: var(--secondary);
             border-color: var(--secondary);
+        }}
+
+        .social-icon-svg {{
+            width: 1.05rem;
+            height: 1.05rem;
+            flex-shrink: 0;
+            display: block;
+        }}
+
+        .social-icon-text {{
+            line-height: 1;
+        }}
+
+        .social-icon-link {{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.85rem;
+            height: 1.85rem;
+            border-radius: 50%;
+            color: #aaa;
+            background: #fafafa;
+            border: 1px solid #eee;
+            text-decoration: none;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }}
+
+        .social-icon-link .social-icon-svg {{
+            width: 1rem;
+            height: 1rem;
+        }}
+
+        .social-icon-link:hover {{
+            color: var(--primary);
+            border-color: #f0c0dd;
+            background: #fff5f8;
         }}
 
         .dev-footer {{
@@ -227,22 +265,14 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
 
         .dev-footer-label {{
             display: block;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.4rem;
         }}
 
-        .dev-footer-links a {{
-            color: #aaa;
-            text-decoration: none;
-        }}
-
-        .dev-footer-links a:hover {{
-            color: var(--primary);
-            text-decoration: underline;
-        }}
-
-        .dev-footer-sep {{
-            margin: 0 0.35rem;
-            color: #ddd;
+        .dev-footer-links {{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
         }}
 
         .catalog-pagination {{
