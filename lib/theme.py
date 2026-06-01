@@ -363,7 +363,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
 
         .catalog-back-top {{
             position: fixed;
-            bottom: 1.1rem;
+            bottom: 4.5rem;
             right: 1rem;
             z-index: 99990;
             width: 2.5rem;
@@ -377,6 +377,13 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             line-height: 1;
             cursor: pointer;
             box-shadow: 0 4px 14px rgba(199, 21, 133, 0.35);
+        }}
+
+        @media (max-width: 768px) {{
+            .catalog-back-top {{
+                bottom: 5.25rem;
+                right: 0.85rem;
+            }}
         }}
 
         .catalog-back-top:active {{
