@@ -282,6 +282,73 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             margin: 0.5rem 0 0.75rem;
         }}
 
+        .size-picker-anchor,
+        .product-actions-anchor,
+        .catalog-pager-anchor {{
+            display: none;
+        }}
+
+        .size-picker-anchor + div[data-testid="stHorizontalBlock"] {{
+            gap: 0.2rem !important;
+            margin: 0.15rem 0 0.25rem !important;
+        }}
+
+        .size-picker-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
+            padding: 0 0.08rem !important;
+            min-width: 0 !important;
+        }}
+
+        .size-picker-anchor + div[data-testid="stHorizontalBlock"] button {{
+            font-size: 0.62rem !important;
+            min-height: 1.45rem !important;
+            padding: 0.12rem 0.05rem !important;
+            line-height: 1.1 !important;
+            border-radius: 6px !important;
+        }}
+
+        .product-actions-anchor + div[data-testid="stHorizontalBlock"] {{
+            gap: 0.25rem !important;
+            margin-top: 0.15rem !important;
+        }}
+
+        .product-actions-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
+            padding: 0 0.1rem !important;
+            min-width: 0 !important;
+        }}
+
+        .product-actions-anchor + div[data-testid="stHorizontalBlock"] button,
+        .product-actions-anchor + div[data-testid="stHorizontalBlock"] a {{
+            font-size: 0.68rem !important;
+            min-height: 1.75rem !important;
+            padding: 0.22rem 0.15rem !important;
+            line-height: 1.15 !important;
+        }}
+
+        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] {{
+            max-width: 11rem;
+            margin: 0.5rem auto 0.75rem !important;
+            gap: 0.25rem !important;
+        }}
+
+        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
+            padding: 0 0.12rem !important;
+        }}
+
+        .catalog-pager-anchor + div[data-testid="stHorizontalBlock"] button {{
+            font-size: 0.85rem !important;
+            min-height: 1.85rem !important;
+            padding: 0.15rem !important;
+            border-radius: 8px !important;
+        }}
+
+        .catalog-pager-label {{
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+            margin: 0.42rem 0 0;
+            line-height: 1.2;
+        }}
+
         div[data-testid="column"] div.stButton > button,
         div[data-testid="column"] a[data-testid="stLinkButton"] {{
             font-size: 0.78rem !important;

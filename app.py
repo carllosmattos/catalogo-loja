@@ -324,13 +324,13 @@ else:
             )
 
             if not all_oos:
-                st.markdown('<div class="size-picker">', unsafe_allow_html=True)
-                sz_cols = st.columns(3)
+                st.markdown('<span class="size-picker-anchor"></span>', unsafe_allow_html=True)
+                sz_cols = st.columns(3, gap="small")
                 for sz, scol in zip(SIZES, sz_cols):
                     qty = stock_for_size(sizes, sz)
                     with scol:
                         active = selected_size == sz
-                        label = f"{sz} ({qty})" if qty > 0 else f"{sz} ✗"
+                        label = f"{sz}·{qty}" if qty > 0 else f"{sz} ✗"
                         if st.button(
                             label,
                             key=f"sz_{pid}_{sz}",
@@ -340,7 +340,6 @@ else:
                         ):
                             st.session_state[size_state_key] = sz
                             st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
 
             if all_oos:
                 st.warning("Produto esgotado em todos os tamanhos.")
@@ -355,37 +354,41 @@ else:
             elif not profit.gift_stock_ok:
                 st.warning("Brinde indisponível no momento.")
             else:
-                if st.button(
-                    "Adicionar",
-                    key=f"add_{pid}_{selected_size}",
-                    use_container_width=True,
-                ):
-                    item = cart_item_from_product(product, profit, selected_size)
-                    if add_to_cart(item):
-                        st.toast("Adicionado ao carrinho!")
-                        st.rerun()
+                st.markdown('<span class="product-actions-anchor"></span>', unsafe_allow_html=True)
+                act_add, act_buy = st.columns(2, gap="small")
+                with act_add:
+                    if st.button(
+                        "Adicionar",
+                        key=f"add_{pid}_{selected_size}",
+                        use_container_width=True,
+                    ):
+                        item = cart_item_from_product(product, profit, selected_size)
+                        if add_to_cart(item):
+                            st.toast("Adicionado ao carrinho!")
+                            st.rerun()
+                        else:
+                            st.error("Estoque insuficiente.")
+                with act_buy:
+                    if whatsapp_number:
+                        message = build_order_message(
+                            product, profit, store_name, catalog_customer, size=selected_size
+                        )
+                        wa_url = build_whatsapp_url(whatsapp_number, message)
+                        st.link_button(
+                            "Comprar",
+                            wa_url,
+                            use_container_width=True,
+                            type="primary",
+                            key=f"buy_{pid}_{selected_size}",
+                        )
                     else:
-                        st.error("Estoque insuficiente.")
-                if whatsapp_number:
-                    message = build_order_message(
-                        product, profit, store_name, catalog_customer, size=selected_size
-                    )
-                    wa_url = build_whatsapp_url(whatsapp_number, message)
-                    st.link_button(
-                        "Comprar",
-                        wa_url,
-                        use_container_width=True,
-                        type="primary",
-                        key=f"buy_{pid}_{selected_size}",
-                    )
-                else:
-                    st.button(
-                        "Comprar",
-                        disabled=True,
-                        use_container_width=True,
-                        key=f"buy_off_{pid}_{selected_size}",
-                        help="WhatsApp da loja não configurado",
-                    )
+                        st.button(
+                            "Comprar",
+                            disabled=True,
+                            use_container_width=True,
+                            key=f"buy_off_{pid}_{selected_size}",
+                            help="WhatsApp da loja não configurado",
+                        )
 
     for row_start in range(0, len(page_products), 2):
         col_left, col_right = st.columns(2, gap="small")
@@ -393,33 +396,27 @@ else:
         if row_start + 1 < len(page_products):
             _render_product_cell(page_products[row_start + 1], col_right)
 
-    st.markdown(
-        f'<div class="catalog-pagination">'
-        f"Página {st.session_state.catalog_page} de {total_pages}"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
-
-    nav_prev, nav_mid, nav_next = st.columns([1, 2, 1])
-    with nav_prev:
+    st.markdown('<span class="catalog-pager-anchor"></span>', unsafe_allow_html=True)
+    pg_prev, pg_mid, pg_next = st.columns([1, 1.2, 1], gap="small")
+    with pg_prev:
         if st.button(
-            "← Anterior",
+            "◀",
             disabled=st.session_state.catalog_page <= 1,
             use_container_width=True,
             key="catalog_prev_page",
         ):
             st.session_state.catalog_page -= 1
             st.rerun()
-    with nav_mid:
+    with pg_mid:
         st.markdown(
-            f"<p style='text-align:center;margin:0.4rem 0;color:#666;"
-            f"font-size:0.85rem;'>"
-            f"{st.session_state.catalog_page} / {total_pages}</p>",
+            f'<p class="catalog-pager-label">'
+            f'{st.session_state.catalog_page} / {total_pages}'
+            f"</p>",
             unsafe_allow_html=True,
         )
-    with nav_next:
+    with pg_next:
         if st.button(
-            "Próxima →",
+            "▶",
             disabled=st.session_state.catalog_page >= total_pages,
             use_container_width=True,
             key="catalog_next_page",
