@@ -7,6 +7,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from lib.theme import hide_streamlit_branding
+
 ROOT = Path(__file__).resolve().parent.parent
 LOGO_RAW = ROOT / "resources" / "lm.jpeg"
 LOGO_PATH = ROOT / "resources" / "lm_logo.png"
@@ -49,6 +51,7 @@ def configure_page(
         layout=layout,
         initial_sidebar_state=sidebar_state,
     )
+    hide_streamlit_branding()
 
 
 def logo_exists() -> bool:
