@@ -5,35 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 
-from lib.branding import DEFAULT_SETTINGS as DEFAULT_COLORS
-
-_STREAMLIT_BRANDING_CSS = """
-footer,
-.stApp > footer,
-[data-testid="stFooter"],
-[class*="viewerBadge"],
-[class*="stDeployButton"],
-a[href*="streamlit.io/made-with-streamlit"],
-a[href*="streamlit.io"][target="_blank"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    pointer-events: none !important;
-}
-
-/* Lista automática de páginas (pages/) — usamos menu customizado */
-[data-testid="stSidebarNav"],
-[data-testid="stSidebarNavItems"],
-[data-testid="stSidebarNavSeparator"] {
-    display: none !important;
-}
-"""
-
-
-def hide_streamlit_branding() -> None:
-    """Remove logo / 'Made with Streamlit' do canto inferior."""
-    st.markdown(f"<style>{_STREAMLIT_BRANDING_CSS}</style>", unsafe_allow_html=True)
+from lib.branding import DEFAULT_SETTINGS as DEFAULT_COLORS, STREAMLIT_BRANDING_CSS
 
 
 def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
@@ -66,7 +38,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         }}
 
         /* Oculta logo / "Made with Streamlit" (canto inferior) */
-        {_STREAMLIT_BRANDING_CSS}
+        {STREAMLIT_BRANDING_CSS}
 
         {sidebar_css}
 

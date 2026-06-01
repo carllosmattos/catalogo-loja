@@ -7,8 +7,6 @@ from pathlib import Path
 
 import streamlit as st
 
-from lib.theme import hide_streamlit_branding
-
 ROOT = Path(__file__).resolve().parent.parent
 LOGO_RAW = ROOT / "resources" / "lm.jpeg"
 LOGO_PATH = ROOT / "resources" / "lm_logo.png"
@@ -29,6 +27,36 @@ DEFAULT_SETTINGS = {
     "logo_url": None,
     "default_banner_url": None,
 }
+
+STREAMLIT_BRANDING_CSS = """
+footer,
+.stApp > footer,
+[data-testid="stFooter"],
+[class*="viewerBadge"],
+[class*="stDeployButton"],
+a[href*="streamlit.io/made-with-streamlit"],
+a[href*="streamlit.io"][target="_blank"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNavItems"],
+[data-testid="stSidebarNavSeparator"] {
+    display: none !important;
+}
+"""
+
+
+def hide_streamlit_branding() -> None:
+    """Remove logo / 'Made with Streamlit' e menu automático de páginas."""
+    st.markdown(
+        f"<style>{STREAMLIT_BRANDING_CSS}</style>",
+        unsafe_allow_html=True,
+    )
 
 
 def get_logo_path() -> Path | None:
