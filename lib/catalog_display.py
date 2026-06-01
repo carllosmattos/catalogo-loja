@@ -122,7 +122,7 @@ def _gift_card_html(g: GiftCost) -> str:
         f'<div class="gift-card">{media}'
         f'<div class="gift-card-body">'
         f'<div class="gift-card-label">Seu brinde</div>'
-        f'<div class="gift-card-name">{g.name}{qty}</div>'
+        f'<div class="gift-card-name">{html.escape(g.name)}{qty}</div>'
         f'<div class="gift-card-sub">Incluso na compra</div>'
         f"</div></div>"
     )
@@ -145,80 +145,80 @@ def build_product_card_html(
     promo_pct = _promo_percent(profit) if has_promo else None
     category = (product.get("category") or "").strip()
 
-    html = f'<div class="{card_class}">'
+    markup = f'<div class="{card_class}">'
 
-    html += '<div class="product-image-wrap">'
-    html += build_image_carousel_html(urls)
+    markup += '<div class="product-image-wrap">'
+    markup += build_image_carousel_html(urls)
 
-    html += '<div class="product-badges">'
+    markup += '<div class="product-badges">'
     if has_promo and promo_pct:
-        html += f'<span class="badge badge-promo">−{promo_pct}%</span>'
+        markup += f'<span class="badge badge-promo">−{promo_pct}%</span>'
     elif has_promo:
-        html += '<span class="badge badge-promo">PROMO</span>'
+        markup += '<span class="badge badge-promo">PROMO</span>'
     if has_gifts:
-        html += '<span class="badge badge-gift">🎁</span>' if compact else '<span class="badge badge-gift">🎁 BRINDE</span>'
-    html += "</div></div>"
+        markup += '<span class="badge badge-gift">🎁</span>' if compact else '<span class="badge badge-gift">🎁 BRINDE</span>'
+    markup += "</div></div>"
 
     # Faixa combo (omitida no modo compacto — badges já indicam)
     if not compact:
         if has_promo and has_gifts:
-            html += (
+            markup += (
                 '<div class="combo-strip">'
-                f"<span>{profit.promotion_name}</span>"
+                f"<span>{html.escape(profit.promotion_name or '')}</span>"
                 '<span class="combo-dot">•</span>'
                 "<span>Brinde incluso</span>"
                 "</div>"
             )
         elif has_promo:
-            html += f'<div class="promo-strip">{profit.promotion_name}</div>'
+            markup += f'<div class="promo-strip">{html.escape(profit.promotion_name or "")}</div>'
         elif has_gifts:
-            html += '<div class="gift-strip">🎁 Ganhe brinde exclusivo</div>'
+            markup += '<div class="gift-strip">🎁 Ganhe brinde exclusivo</div>'
 
-    html += '<div class="product-info">'
+    markup += '<div class="product-info">'
     if category:
-        html += f'<div class="product-category">{category}</div>'
-    html += f'<div class="product-name">{product["name"]}</div>'
+        markup += f'<div class="product-category">{html.escape(category)}</div>'
+    markup += f'<div class="product-name">{html.escape(product["name"])}</div>'
 
     if size_hint:
-        html += f'<div class="product-size">Tam. {html.escape(size_hint)}</div>'
+        markup += f'<div class="product-size">Tam. {html.escape(size_hint)}</div>'
 
     if product.get("description"):
         desc_class = "product-desc product-desc-clamp" if compact else "product-desc"
-        html += f'<div class="{desc_class}">{product["description"]}</div>'
+        markup += f'<div class="{desc_class}">{html.escape(product["description"])}</div>'
 
     # Preço
-    html += '<div class="price-block">'
+    markup += '<div class="price-block">'
     if has_promo:
         if not compact:
-            html += f'<div class="price-old">{format_currency(profit.preco_catalogo)}</div>'
-        html += (
+            markup += f'<div class="price-old">{format_currency(profit.preco_catalogo)}</div>'
+        markup += (
             f'<div class="price-current">{format_currency(profit.preco_final_cliente)}</div>'
         )
         if not compact:
-            html += (
+            markup += (
                 f'<div class="price-save">Economize {format_currency(profit.desconto)}</div>'
             )
     else:
-        html += (
+        markup += (
             f'<div class="price-current solo">'
             f"{format_currency(profit.preco_final_cliente)}</div>"
         )
-    html += "</div>"
+    markup += "</div>"
 
     # Brindes em destaque (somente no card grande)
     if has_gifts and not compact:
-        html += '<div class="gifts-section">'
+        markup += '<div class="gifts-section">'
         for g in profit.gifts:
-            html += _gift_card_html(g)
-        html += "</div>"
+            markup += _gift_card_html(g)
+        markup += "</div>"
     elif has_gifts and compact:
         gift_names = ", ".join(g.name for g in profit.gifts[:2])
         if len(profit.gifts) > 2:
             gift_names += "…"
-        html += f'<div class="gift-compact">🎁 {gift_names}</div>'
+        markup += f'<div class="gift-compact">🎁 {html.escape(gift_names)}</div>'
 
     if out_of_stock:
-        html += '<div class="stock-out">Esgotado</div>'
+        markup += '<div class="stock-out">Esgotado</div>'
 
-    html += "</div></div>"
-    return html
+    markup += "</div></div>"
+    return markup
