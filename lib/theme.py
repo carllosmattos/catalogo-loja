@@ -21,6 +21,13 @@ a[href*="streamlit.io"][target="_blank"] {
     overflow: hidden !important;
     pointer-events: none !important;
 }
+
+/* Lista automática de páginas (pages/) — usamos menu customizado */
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarNavItems"],
+[data-testid="stSidebarNavSeparator"] {
+    display: none !important;
+}
 """
 
 

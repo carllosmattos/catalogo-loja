@@ -35,8 +35,7 @@ with st.form("login_form"):
         else:
             ok, msg = login(email, password)
             if ok:
-                st.success(msg)
-                st.rerun()
+                st.switch_page("pages/2_Admin_Produtos.py")
             else:
                 st.error(msg)
 

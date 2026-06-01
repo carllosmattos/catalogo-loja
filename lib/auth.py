@@ -164,19 +164,8 @@ def require_auth() -> bool:
 
     st.session_state.auth_session = None
     st.session_state.auth_user = None
-
-    st.warning("Faça login para acessar o painel administrativo.")
-    with st.form("login_form"):
-        email = st.text_input("E-mail")
-        password = st.text_input("Senha", type="password")
-        submitted = st.form_submit_button("Entrar", use_container_width=True)
-        if submitted:
-            ok, msg = login(email, password)
-            if ok:
-                st.success(msg)
-                st.rerun()
-            else:
-                st.error(msg)
+    st.switch_page("pages/1_Admin_Login.py")
+    st.stop()
     return False
 
 
