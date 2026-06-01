@@ -40,9 +40,62 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         {sidebar_css}
 
         .block-container {{
-            padding-top: 2.5rem;
-            padding-bottom: 2rem;
+            padding-top: 1rem;
+            padding-bottom: 1.25rem;
             max-width: 720px;
+        }}
+
+        .catalog-greeting {{
+            font-size: 0.78rem;
+            color: #666;
+            text-align: center;
+            margin: 0 0 0.35rem;
+        }}
+
+        .catalog-nav-compact {{
+            margin-bottom: 0.45rem;
+        }}
+
+        .catalog-nav-compact [data-testid="column"] {{
+            padding: 0 0.15rem !important;
+        }}
+
+        .catalog-nav-compact [data-testid="column"] button {{
+            padding: 0.28rem 0.15rem !important;
+            font-size: 0.72rem !important;
+            min-height: 1.65rem !important;
+            border-radius: 8px !important;
+            line-height: 1.1 !important;
+            white-space: nowrap;
+        }}
+
+        .catalog-filter-label {{
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 0.1rem;
+        }}
+
+        .catalog-filter-wrap {{
+            margin-bottom: 0.35rem;
+        }}
+
+        .catalog-filter-wrap div[data-baseweb="select"] {{
+            font-size: 0.82rem;
+        }}
+
+        .catalog-filter-wrap div[data-baseweb="select"] > div {{
+            min-height: 2rem !important;
+            border-radius: 8px !important;
+            border-color: #f0e0ea !important;
+        }}
+
+        .catalog-count {{
+            font-size: 0.72rem;
+            color: #888;
+            text-align: right;
+            margin: 0.15rem 0 0.35rem;
         }}
 
         .catalog-grid-row {{
@@ -141,38 +194,55 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             padding: 0.35rem;
         }}
 
-        .catalog-filter-wrap {{
-            margin-bottom: 0.75rem;
+        .store-social-bar {{
+            text-align: center;
+            margin: 0 0 0.4rem;
         }}
 
-        div[role="radiogroup"].catalog-categories {{
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            justify-content: flex-start !important;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 0.25rem;
+        .store-social-link {{
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.12rem 0.45rem;
+            border-radius: 999px;
+            background: #fff5f8;
+            border: 1px solid #f0e0ea;
         }}
 
-        div[role="radiogroup"].catalog-categories label {{
-            flex-shrink: 0;
-            white-space: nowrap;
-            font-size: 0.82rem !important;
-            padding: 0.3rem 0.75rem !important;
+        .store-social-link:hover {{
+            color: var(--secondary);
+            border-color: var(--secondary);
         }}
 
-        .catalog-filter-wrap div[role="radiogroup"] {{
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            justify-content: flex-start !important;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 0.25rem;
+        .dev-footer {{
+            text-align: center;
+            margin-top: 1.25rem;
+            padding: 0.75rem 0 1rem;
+            font-size: 0.68rem;
+            color: #999;
+            line-height: 1.5;
         }}
 
-        .catalog-filter-wrap div[role="radiogroup"] label {{
-            flex-shrink: 0;
-            white-space: nowrap;
-            font-size: 0.82rem !important;
-            padding: 0.3rem 0.75rem !important;
+        .dev-footer-label {{
+            display: block;
+            margin-bottom: 0.25rem;
+        }}
+
+        .dev-footer-links a {{
+            color: #aaa;
+            text-decoration: none;
+        }}
+
+        .dev-footer-links a:hover {{
+            color: var(--primary);
+            text-decoration: underline;
+        }}
+
+        .dev-footer-sep {{
+            margin: 0 0.35rem;
+            color: #ddd;
         }}
 
         .catalog-pagination {{
@@ -191,12 +261,12 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
 
         .store-header {{
             text-align: center;
-            padding: 0 0 0.75rem;
+            padding: 0 0 0.35rem;
             overflow: visible;
         }}
 
         .store-header-banner {{
-            padding: 0 0 0.5rem;
+            padding: 0 0 0.25rem;
         }}
 
         .store-banner-wrap {{
@@ -209,7 +279,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         .store-banner {{
             width: 100%;
             height: auto;
-            max-height: 200px;
+            max-height: 130px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
@@ -219,9 +289,9 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         .store-banner-carousel {{
             position: relative;
             width: 100%;
-            min-height: 120px;
-            max-height: 200px;
-            aspect-ratio: 2 / 1;
+            min-height: 90px;
+            max-height: 130px;
+            aspect-ratio: 2.2 / 1;
         }}
 
         .store-banner-track {{
@@ -626,16 +696,17 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
 
         div[role="radiogroup"] {{
             justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.35rem;
+            margin-bottom: 0.5rem;
         }}
 
         div[role="radiogroup"] label {{
             background: #fff;
-            border: 2px solid #f0e0ea;
+            border: 1px solid #f0e0ea;
             border-radius: 999px;
-            padding: 0.35rem 1rem !important;
+            padding: 0.25rem 0.65rem !important;
             font-weight: 600;
+            font-size: 0.78rem !important;
         }}
 
         .out-of-stock {{

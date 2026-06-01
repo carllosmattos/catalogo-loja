@@ -23,6 +23,7 @@ from lib.catalog import (
     fetch_store_settings,
 )
 from lib.catalog_display import build_product_card_html, render_catalog_header
+from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
 from lib.customer_session import (
     customer_display_name,
@@ -33,6 +34,7 @@ from lib.customer_session import (
     set_catalog_customer,
 )
 from lib.profit import calculate_profit
+from lib.social import render_developer_footer, render_store_social_bar
 from lib.theme import inject_theme
 from lib.utils import format_cpf, format_currency, is_valid_cpf
 from lib.whatsapp import build_cart_message, build_order_message, build_whatsapp_url
@@ -56,24 +58,20 @@ catalog_customer = get_catalog_customer()
 promotions = fetch_active_promotions()
 
 render_catalog_header(settings, promotions)
+render_store_social_bar()
 
 if catalog_customer and catalog_customer.get("name"):
-    st.caption(f"Olá, **{customer_display_name(catalog_customer)}**!")
+    st.markdown(
+        f'<p class="catalog-greeting">Olá, <strong>{customer_display_name(catalog_customer)}</strong>!</p>',
+        unsafe_allow_html=True,
+    )
 
 if not whatsapp_number:
     st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
 
 piece_count = cart_piece_count()
 nav_options = ["Catálogo", "Carrinho", "Minha conta"]
-view = st.radio(
-    "Navegação",
-    options=nav_options,
-    horizontal=True,
-    label_visibility="collapsed",
-    key="catalog_nav",
-)
-if piece_count > 0 and view != "Carrinho":
-    st.caption(f"🛒 {piece_count} peça(s) no carrinho — toque em **Carrinho** para finalizar")
+view = render_catalog_nav(nav_options, cart_count=piece_count)
 
 # ── Minha conta ─────────────────────────────────────────────
 if view == "Minha conta":
@@ -259,22 +257,8 @@ else:
 
     if "catalog_page" not in st.session_state:
         st.session_state.catalog_page = 1
-    if "catalog_category" not in st.session_state:
-        st.session_state.catalog_category = "Todas"
 
-    st.markdown('<div class="catalog-filter-wrap">', unsafe_allow_html=True)
-    selected_category = st.radio(
-        "Categoria",
-        options=filter_options,
-        horizontal=True,
-        label_visibility="collapsed",
-        key="catalog_category_radio",
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    if selected_category != st.session_state.catalog_category:
-        st.session_state.catalog_category = selected_category
-        st.session_state.catalog_page = 1
+    selected_category = render_category_filter(filter_options)
 
     cat_id = category_ids.get(selected_category) if selected_category != "Todas" else None
     cat_name = selected_category if selected_category != "Todas" and not cat_id else None
@@ -302,9 +286,7 @@ else:
     start_idx = (st.session_state.catalog_page - 1) * CATALOG_PAGE_SIZE + 1
     end_idx = min(st.session_state.catalog_page * CATALOG_PAGE_SIZE, total_products)
     st.markdown(
-        f'<div class="catalog-pagination">'
-        f"{start_idx}–{end_idx} de {total_products} peça(s)"
-        f"</div>",
+        f'<p class="catalog-count">{start_idx}–{end_idx} de {total_products} peça(s)</p>',
         unsafe_allow_html=True,
     )
 
@@ -404,3 +386,4 @@ else:
 
 st.markdown("---")
 st.caption(f"Catálogo {store_name} · Compre pelo WhatsApp")
+render_developer_footer()

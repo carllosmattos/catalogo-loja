@@ -162,13 +162,9 @@ def get_supabase() -> Client:
 
 
 def get_authenticated_client() -> Client:
-    """Retorna cliente com token JWT da sessão atual."""
+    """Retorna cliente com JWT da sessão admin (sem reutilizar refresh token)."""
     client = get_supabase()
     session = st.session_state.get("auth_session")
     if session and session.get("access_token"):
         client.postgrest.auth(session["access_token"])
-        if session.get("refresh_token"):
-            client.auth.set_session(
-                session["access_token"], session["refresh_token"]
-            )
     return client

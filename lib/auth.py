@@ -37,8 +37,15 @@ def _set_auth_state(access_token: str, refresh_token: str, user_id: str, email: 
         "refresh_token": refresh_token,
     }
     st.session_state.auth_user = {"id": user_id, "email": email}
-    client = get_supabase()
-    client.auth.set_session(access_token, refresh_token)
+
+
+def _apply_session_from_response(session, user, fallback_email: str = "") -> bool:
+    if not session or not user:
+        return False
+    email = user.email or fallback_email
+    _set_auth_state(session.access_token, session.refresh_token, user.id, email)
+    _save_session_cookie(session.access_token, session.refresh_token, user.id, email)
+    return True
 
 
 def _save_session_cookie(access_token: str, refresh_token: str, user_id: str, email: str):
@@ -85,39 +92,24 @@ def restore_session() -> bool:
 
     try:
         data = json.loads(raw)
-        access_token = data.get("access_token")
         refresh_token = data.get("refresh_token")
-        if not access_token or not refresh_token:
+        fallback_email = data.get("email", "")
+        if not refresh_token:
             _clear_session_cookie()
             return False
 
         client = get_supabase()
-        client.auth.set_session(access_token, refresh_token)
+        response = client.auth.refresh_session(refresh_token)
+        if _apply_session_from_response(
+            response.session, response.user, fallback_email
+        ):
+            return True
 
-        session = None
-        user = None
-        try:
-            session_response = client.auth.get_session()
-            if session_response:
-                session = session_response.session
-                user = session_response.user
-        except Exception:
-            pass
-
-        if not session:
-            refresh_response = client.auth.refresh_session(refresh_token)
-            session = refresh_response.session
-            user = refresh_response.user
-
-        if not session or not user:
-            _clear_session_cookie()
-            return False
-
-        email = user.email or data.get("email", "")
-        _set_auth_state(session.access_token, session.refresh_token, user.id, email)
-        _save_session_cookie(session.access_token, session.refresh_token, user.id, email)
-        return True
+        _clear_session_cookie()
+        return False
     except Exception:
+        st.session_state.auth_session = None
+        st.session_state.auth_user = None
         _clear_session_cookie()
         return False
 
@@ -169,6 +161,9 @@ def require_auth() -> bool:
     restore_session()
     if is_authenticated():
         return True
+
+    st.session_state.auth_session = None
+    st.session_state.auth_user = None
 
     st.warning("Faça login para acessar o painel administrativo.")
     with st.form("login_form"):
