@@ -34,6 +34,8 @@ def register_sale(
     customer_address: str = "",
     notes: str = "",
     quantity: int = 1,
+    *,
+    selected_size: str | None = None,
 ) -> str:
     """Registra venda via RPC, decrementa estoque."""
     qty = max(int(quantity), 1)
@@ -50,7 +52,9 @@ def register_sale(
     client = get_authenticated_client()
     promotions = fetch_active_promotions()
     linked = fetch_product_gifts(product["id"])
-    profit = calculate_profit(product, linked, promotions)
+    profit = calculate_profit(
+        product, linked, promotions, selected_size=selected_size
+    )
 
     if profit.stock < qty:
         raise ValueError(f"Estoque insuficiente (disponível: {profit.stock}).")
@@ -88,7 +92,7 @@ def register_sale(
             "p_customer_phone": customer_phone.strip(),
             "p_product_id": product["id"],
             "p_product_name": product["name"],
-            "p_product_size": product.get("size", ""),
+            "p_product_size": selected_size or product.get("size", "") or "M",
             "p_preco_catalogo": float(profit.preco_catalogo),
             "p_desconto": float(profit.desconto),
             "p_sale_freight": float(product.get("sale_freight", 0)),

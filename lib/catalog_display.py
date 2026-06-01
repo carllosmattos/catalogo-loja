@@ -7,6 +7,7 @@ import html
 import streamlit as st
 
 from lib.branding import get_logo_path, resolve_catalog_banner, resolve_logo_url
+from lib.images import build_image_carousel_html, normalize_image_urls
 from lib.profit import GiftCost, ProfitResult
 from lib.utils import format_currency
 
@@ -88,13 +89,27 @@ def _promo_percent(profit: ProfitResult) -> int | None:
 
 def _gift_card_html(g: GiftCost) -> str:
     qty = f" x{g.quantity}" if g.quantity > 1 else ""
-    if g.image_url:
-        media = (
-            f'<div class="gift-photo-wrap">'
-            f'<img class="gift-photo" src="{g.image_url}" alt="{g.name}">'
-            f'<span class="gift-photo-tag">GRÁTIS</span>'
-            f"</div>"
-        )
+    urls = normalize_image_urls(
+        {"image_urls": g.image_urls or [], "image_url": g.image_url}
+    )
+    if urls:
+        if len(urls) == 1:
+            media = (
+                f'<div class="gift-photo-wrap">'
+                f'<img class="gift-photo" src="{html.escape(urls[0])}" alt="{html.escape(g.name)}">'
+                f'<span class="gift-photo-tag">GRÁTIS</span>'
+                f"</div>"
+            )
+        else:
+            inner = build_image_carousel_html(
+                urls, css_class="gift-photo-carousel"
+            )
+            media = (
+                f'<div class="gift-photo-wrap">'
+                f"{inner}"
+                f'<span class="gift-photo-tag">GRÁTIS</span>'
+                f"</div>"
+            )
     else:
         media = (
             '<div class="gift-photo-wrap gift-photo-placeholder">'
@@ -119,8 +134,9 @@ def build_product_card_html(
     out_of_stock: bool,
     *,
     compact: bool = False,
+    size_hint: str | None = None,
 ) -> str:
-    urls = product.get("image_urls") or []
+    urls = normalize_image_urls(product)
     card_class = "product-card out-of-stock" if out_of_stock else "product-card"
     if compact:
         card_class += " product-card-compact"
@@ -131,12 +147,8 @@ def build_product_card_html(
 
     html = f'<div class="{card_class}">'
 
-    # Foto + badges sobrepostos
     html += '<div class="product-image-wrap">'
-    if urls:
-        html += f'<img class="product-photo" src="{urls[0]}" alt="{product["name"]}">'
-    else:
-        html += '<div class="product-photo product-photo-empty"></div>'
+    html += build_image_carousel_html(urls)
 
     html += '<div class="product-badges">'
     if has_promo and promo_pct:
@@ -167,8 +179,8 @@ def build_product_card_html(
         html += f'<div class="product-category">{category}</div>'
     html += f'<div class="product-name">{product["name"]}</div>'
 
-    if product.get("size"):
-        html += f'<div class="product-size">Tam. {product["size"]}</div>'
+    if size_hint:
+        html += f'<div class="product-size">Tam. {html.escape(size_hint)}</div>'
 
     if product.get("description"):
         desc_class = "product-desc product-desc-clamp" if compact else "product-desc"

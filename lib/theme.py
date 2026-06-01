@@ -437,6 +437,61 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             min-height: 280px;
         }}
 
+        .product-photo-carousel-inner,
+        .item-photo-carousel {{
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }}
+
+        .product-photo-carousel-inner .product-banner-track {{
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: unset;
+        }}
+
+        .product-photo-carousel-inner .product-banner-slide {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            max-height: none;
+            object-fit: cover;
+            opacity: 0;
+            animation: bannerCrossfade var(--banner-duration, 12s) infinite;
+        }}
+
+        .product-photo-carousel-inner .product-banner-slide:nth-child(1) {{ animation-delay: 0s; }}
+        .product-photo-carousel-inner .product-banner-slide:nth-child(2) {{
+            animation-delay: calc(-1 * var(--banner-duration, 12s) / var(--banner-count, 2));
+        }}
+        .product-photo-carousel-inner .product-banner-slide:nth-child(3) {{
+            animation-delay: calc(-2 * var(--banner-duration, 12s) / var(--banner-count, 3));
+        }}
+        .product-photo-carousel-inner .product-banner-slide:nth-child(4) {{
+            animation-delay: calc(-3 * var(--banner-duration, 12s) / var(--banner-count, 4));
+        }}
+        .product-photo-carousel-inner .product-banner-slide:nth-child(5) {{
+            animation-delay: calc(-4 * var(--banner-duration, 12s) / var(--banner-count, 5));
+        }}
+
+        .size-picker {{
+            margin: 0.25rem 0 0.35rem;
+        }}
+
+        .size-picker [data-testid="column"] {{
+            padding: 0 0.12rem !important;
+        }}
+
+        .size-picker button {{
+            font-size: 0.72rem !important;
+            min-height: 1.75rem !important;
+            padding: 0.2rem 0.1rem !important;
+        }}
+
         .product-badges {{
             position: absolute;
             top: 12px;

@@ -17,6 +17,8 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 009 | [`migrations/009_customer_address.sql`](migrations/009_customer_address.sql) | Endereço + login por telefone (RPC) |
 | 010 | [`migrations/010_categories.sql`](migrations/010_categories.sql) | Categorias + filtro no catálogo |
 | 011 | [`migrations/011_banners.sql`](migrations/011_banners.sql) | Banner padrão + banner por promoção |
+| 012 | [`migrations/012_product_sizes_and_galleries.sql`](migrations/012_product_sizes_and_galleries.sql) | Estoque P/M/G + galerias de fotos |
+| 013 | [`migrations/013_sale_size_stock.sql`](migrations/013_sale_size_stock.sql) | Vendas decrementam estoque por tamanho |
 
 ## Já rodou o schema antes?
 
@@ -32,6 +34,8 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Endereço e login por telefone → **009**
 - Categorias de produtos → **010**
 - Banners (padrão e promoções) → **011**
+- Estoque por tamanho e galerias → **012**
+- Vendas por tamanho (RPC) → **013**
 
 ## Projeto do zero
 

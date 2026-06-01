@@ -8,6 +8,7 @@ from lib.branding import configure_page, merge_brand_settings
 from lib.cart import (
     add_to_cart,
     cart_item_from_product,
+    cart_line_id,
     cart_piece_count,
     cart_totals,
     clear_cart,
@@ -34,6 +35,7 @@ from lib.customer_session import (
     set_catalog_customer,
 )
 from lib.profit import calculate_profit
+from lib.product_sizes import SIZES, stock_for_size, total_stock
 from lib.social import render_developer_footer, render_store_social_bar
 from lib.theme import inject_theme
 from lib.utils import format_cpf, format_currency, is_valid_cpf
@@ -172,7 +174,7 @@ elif view == "Carrinho":
         st.info("Seu carrinho está vazio. Volte ao catálogo e adicione peças.")
     else:
         for item in cart:
-            pid = item["product_id"]
+            line_id = item.get("cart_line_id", item["product_id"])
             qty = int(item.get("quantity", 1))
             unit = float(item.get("preco_final", 0))
             subtotal = unit * qty
@@ -202,14 +204,14 @@ elif view == "Carrinho":
                     max_value=int(item.get("max_stock", 1)),
                     value=qty,
                     step=1,
-                    key=f"cart_qty_{pid}",
+                    key=f"cart_qty_{line_id}",
                 )
                 if new_qty != qty:
-                    if update_qty(pid, new_qty):
+                    if update_qty(line_id, new_qty):
                         st.rerun()
             with col_r:
-                if st.button("Remover", key=f"cart_rm_{pid}", use_container_width=True):
-                    remove_from_cart(pid)
+                if st.button("Remover", key=f"cart_rm_{line_id}", use_container_width=True):
+                    remove_from_cart(line_id)
                     st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
             st.markdown("")
@@ -293,31 +295,72 @@ else:
     def _render_product_cell(product: dict, col) -> None:
         with col:
             linked_gifts = fetch_product_gifts(product["id"])
-            profit = calculate_profit(product, linked_gifts, promotions)
-            out_of_stock = profit.stock <= 0
             pid = str(product["id"])
+            sizes = product.get("sizes") or []
+            size_state_key = f"prod_size_{pid}"
+
+            in_stock = [s for s in SIZES if stock_for_size(sizes, s) > 0]
+            if size_state_key not in st.session_state or (
+                st.session_state[size_state_key] not in SIZES
+            ):
+                st.session_state[size_state_key] = in_stock[0] if in_stock else "M"
+
+            selected_size = st.session_state[size_state_key]
+            profit = calculate_profit(
+                product, linked_gifts, promotions, selected_size=selected_size
+            )
+            all_oos = total_stock(sizes) <= 0
+            size_oos = stock_for_size(sizes, selected_size) <= 0
 
             st.markdown(
                 build_product_card_html(
-                    product, profit, out_of_stock, compact=True
+                    product,
+                    profit,
+                    all_oos,
+                    compact=True,
+                    size_hint=selected_size,
                 ),
                 unsafe_allow_html=True,
             )
 
-            if out_of_stock:
+            if not all_oos:
+                st.markdown('<div class="size-picker">', unsafe_allow_html=True)
+                sz_cols = st.columns(3)
+                for sz, scol in zip(SIZES, sz_cols):
+                    qty = stock_for_size(sizes, sz)
+                    with scol:
+                        active = selected_size == sz
+                        label = f"{sz} ({qty})" if qty > 0 else f"{sz} ✗"
+                        if st.button(
+                            label,
+                            key=f"sz_{pid}_{sz}",
+                            disabled=qty <= 0,
+                            use_container_width=True,
+                            type="primary" if active and qty > 0 else "secondary",
+                        ):
+                            st.session_state[size_state_key] = sz
+                            st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            if all_oos:
+                st.warning("Produto esgotado em todos os tamanhos.")
                 st.button(
                     "Indisponível",
                     disabled=True,
                     use_container_width=True,
                     key=f"unavail_{pid}",
                 )
+            elif size_oos:
+                st.warning(f"Tamanho {selected_size} esgotado — escolha outro.")
+            elif not profit.gift_stock_ok:
+                st.warning("Brinde indisponível no momento.")
             else:
                 if st.button(
                     "Adicionar",
-                    key=f"add_{pid}",
+                    key=f"add_{pid}_{selected_size}",
                     use_container_width=True,
                 ):
-                    item = cart_item_from_product(product, profit)
+                    item = cart_item_from_product(product, profit, selected_size)
                     if add_to_cart(item):
                         st.toast("Adicionado ao carrinho!")
                         st.rerun()
@@ -325,7 +368,7 @@ else:
                         st.error("Estoque insuficiente.")
                 if whatsapp_number:
                     message = build_order_message(
-                        product, profit, store_name, catalog_customer
+                        product, profit, store_name, catalog_customer, size=selected_size
                     )
                     wa_url = build_whatsapp_url(whatsapp_number, message)
                     st.link_button(
@@ -333,14 +376,14 @@ else:
                         wa_url,
                         use_container_width=True,
                         type="primary",
-                        key=f"buy_{pid}",
+                        key=f"buy_{pid}_{selected_size}",
                     )
                 else:
                     st.button(
                         "Comprar",
                         disabled=True,
                         use_container_width=True,
-                        key=f"buy_off_{pid}",
+                        key=f"buy_off_{pid}_{selected_size}",
                         help="WhatsApp da loja não configurado",
                     )
 

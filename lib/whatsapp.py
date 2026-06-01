@@ -13,6 +13,8 @@ def build_order_message(
     profit: ProfitResult,
     store_name: str,
     customer: dict | None = None,
+    *,
+    size: str | None = None,
 ) -> str:
     from lib.customer_session import customer_for_whatsapp
 
@@ -20,8 +22,9 @@ def build_order_message(
     lines.extend(customer_for_whatsapp(customer))
     lines.append(f"Peça: {product.get('name', '')}")
 
-    if product.get("size"):
-        lines.append(f"Tamanho: {product['size']}")
+    chosen_size = size or product.get("size")
+    if chosen_size:
+        lines.append(f"Tamanho: {chosen_size}")
     if product.get("category"):
         lines.append(f"Categoria: {product['category']}")
 

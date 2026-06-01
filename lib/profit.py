@@ -15,6 +15,7 @@ class GiftCost:
     purchase_freight: float
     sale_markup: float
     image_url: str | None = None
+    image_urls: list[str] | None = None
 
     @property
     def total_cost(self) -> float:
@@ -86,16 +87,29 @@ def apply_promotion(
     return best_discount, best_name
 
 
+from lib.product_sizes import stock_for_size, total_stock
+
+
 def calculate_profit(
     product: dict[str, Any],
     linked_gifts: list[dict[str, Any]],
     promotions: list[dict[str, Any]] | None = None,
+    *,
+    selected_size: str | None = None,
 ) -> ProfitResult:
     purchase_price = float(product.get("purchase_price", 0))
     purchase_freight = float(product.get("purchase_freight", 0))
     sale_price = float(product.get("sale_price", 0))
     sale_freight = float(product.get("sale_freight", 0))
-    stock = int(product.get("stock", 0))
+    sizes = product.get("sizes")
+    if sizes is not None:
+        stock = (
+            stock_for_size(sizes, selected_size)
+            if selected_size
+            else total_stock(sizes)
+        )
+    else:
+        stock = int(product.get("stock", 0))
 
     custo_peca = purchase_price + purchase_freight
 
@@ -117,7 +131,8 @@ def calculate_profit(
             purchase_price=float(gift.get("purchase_price", 0)),
             purchase_freight=float(gift.get("purchase_freight", 0)),
             sale_markup=float(gift.get("sale_markup", 0)),
-            image_url=gift.get("image_url"),
+            image_url=(gift.get("image_url") or (gift.get("image_urls") or [None])[0]),
+            image_urls=gift.get("image_urls") or [],
         )
         gift_costs.append(gc)
         custo_brindes += gc.total_cost

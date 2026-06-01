@@ -16,6 +16,7 @@ from lib.catalog import (
     upload_image,
 )
 from lib.catalog_display import build_banner_header_html
+from lib.images import normalize_image_urls, render_admin_gallery
 from lib.utils import format_currency
 
 configure_page("Admin — Promoções", layout="wide", sidebar_state="expanded")
@@ -77,6 +78,12 @@ with tab_new:
             help="Substitui o banner padrão enquanto a promoção estiver ativa.",
         )
         banner_file = None
+        gallery_files = st.file_uploader(
+            "Fotos da promoção (carrossel no catálogo)",
+            type=["png", "jpg", "jpeg", "webp"],
+            accept_multiple_files=True,
+            help="Opcional. Várias fotos aparecem em carrossel na página da promoção.",
+        )
         if show_banner:
             banner_file = st.file_uploader(
                 "Imagem do banner da promoção",
@@ -115,6 +122,10 @@ with tab_new:
                     }
                     if show_banner and banner_file:
                         data["banner_url"] = _upload_promo_banner(banner_file)
+                    if gallery_files:
+                        data["image_urls"] = [
+                            _upload_promo_banner(f) for f in gallery_files
+                        ]
                     create_promotion(data)
                     st.success("Promoção cadastrada!")
                     st.rerun()
@@ -158,6 +169,17 @@ with tab_list:
                     st.markdown(
                         build_banner_header_html("single", [promo["banner_url"]]),
                         unsafe_allow_html=True,
+                    )
+
+                promo_urls = normalize_image_urls(promo)
+                if promo_urls:
+                    st.markdown("**Fotos da promoção**")
+                    render_admin_gallery(
+                        promo_urls,
+                        f"promo_{promo['id']}",
+                        lambda new_urls, pid=promo["id"]: update_promotion(
+                            pid, {"image_urls": new_urls}
+                        ),
                     )
 
                 with st.form(f"edit_promo_{promo['id']}"):
@@ -211,6 +233,12 @@ with tab_list:
                         key=f"sb_{promo['id']}",
                     )
                     banner_file = None
+                    gallery_files = st.file_uploader(
+                        "Adicionar fotos da promoção",
+                        type=["png", "jpg", "jpeg", "webp"],
+                        accept_multiple_files=True,
+                        key=f"gf_{promo['id']}",
+                    )
                     if show_banner:
                         if promo.get("banner_url"):
                             st.caption("Banner atual salvo. Envie novo arquivo para substituir.")
@@ -250,6 +278,11 @@ with tab_list:
                                     payload["banner_url"] = None
                                 elif banner_file:
                                     payload["banner_url"] = _upload_promo_banner(banner_file)
+                                if gallery_files:
+                                    merged = list(normalize_image_urls(promo))
+                                    for gf in gallery_files:
+                                        merged.append(_upload_promo_banner(gf))
+                                    payload["image_urls"] = merged
 
                                 update_promotion(promo["id"], payload)
                                 st.success("Atualizado!")

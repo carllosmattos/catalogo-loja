@@ -4,6 +4,26 @@ Todas as mudanças relevantes deste projeto estão documentadas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [1.3.0] — 2026-05-31
+
+Estoque por tamanho (P/M/G), galerias de fotos com carrossel e avisos de esgotado.
+
+### Adicionado
+
+- **Estoque P/M/G** — tabela `product_sizes`, seleção de tamanho no catálogo e nas vendas admin
+- **Galerias de fotos** — múltiplas imagens em produtos, brindes e promoções (carrossel no catálogo)
+- **Excluir fotos** no admin (produtos, brindes, promoções)
+- **Avisos de esgotado** — produto ou tamanho sem estoque no catálogo e no admin
+- Migrações `012_product_sizes_and_galleries.sql` e `013_sale_size_stock.sql`
+
+### Alterado
+
+- Carrinho diferencia o mesmo produto por tamanho (`product_id:size`)
+- Vendas admin decrementam estoque do tamanho escolhido
+- Brindes usam `image_urls[]` (mantém `image_url` como capa)
+
+---
+
 ## [1.2.0] — 2026-05-31
 
 Banners no topo do catálogo substituindo logo + nome.

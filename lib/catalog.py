@@ -74,7 +74,7 @@ def fetch_products_page(
 
         result = query.range(start, end).execute()
         total = result.count if result.count is not None else len(result.data or [])
-        return result.data or [], total
+        products = result.data or []
     except Exception:
         products = fetch_products(active_only=active_only)
         if category_name:
@@ -84,7 +84,11 @@ def fetch_products_page(
                 if (p.get("category") or "").strip() == category_name
             ]
         total = len(products)
-        return products[start : start + per_page], total
+        products = products[start : start + per_page]
+
+    from lib.product_sizes import attach_sizes_to_products
+
+    return attach_sizes_to_products(products), total
 
 
 def fetch_distinct_product_categories(active_only: bool = True) -> list[str]:
@@ -103,7 +107,7 @@ def fetch_distinct_product_categories(active_only: bool = True) -> list[str]:
 
 def fetch_all_products() -> list[dict[str, Any]]:
     client = get_authenticated_client()
-    return (
+    data = (
         client.table("products")
         .select("*")
         .order("created_at", desc=True)
@@ -111,6 +115,9 @@ def fetch_all_products() -> list[dict[str, Any]]:
         .data
         or []
     )
+    from lib.product_sizes import attach_sizes_to_products
+
+    return attach_sizes_to_products(data)
 
 
 def create_product(data: dict[str, Any]) -> dict[str, Any]:
@@ -172,6 +179,10 @@ def duplicate_product(product_id: str) -> dict[str, Any]:
             if lg.get("gift_id")
         ]
         set_product_gifts(new_id, links)
+
+    from lib.product_sizes import set_product_sizes
+
+    set_product_sizes(new_id, {"P": 0, "M": 0, "G": 0})
 
     return new_product
 

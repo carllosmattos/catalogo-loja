@@ -25,11 +25,20 @@ def cart_piece_count() -> int:
     return sum(int(item.get("quantity", 1)) for item in get_cart())
 
 
-def cart_item_from_product(product: dict[str, Any], profit: ProfitResult) -> dict[str, Any]:
+def cart_line_id(product_id: str, size: str) -> str:
+    return f"{product_id}:{size}"
+
+
+def cart_item_from_product(
+    product: dict[str, Any],
+    profit: ProfitResult,
+    size: str,
+) -> dict[str, Any]:
     return {
         "product_id": str(product["id"]),
+        "cart_line_id": cart_line_id(str(product["id"]), size),
         "name": product.get("name", ""),
-        "size": product.get("size", ""),
+        "size": size,
         "quantity": 1,
         "preco_catalogo": float(profit.preco_catalogo),
         "desconto": float(profit.desconto),
@@ -43,12 +52,14 @@ def cart_item_from_product(product: dict[str, Any], profit: ProfitResult) -> dic
 def add_to_cart(item: dict[str, Any]) -> bool:
     """Adiciona ou incrementa item. Retorna False se estoque insuficiente."""
     cart = _ensure_cart()
-    pid = item["product_id"]
+    line_id = item.get("cart_line_id") or cart_line_id(
+        item["product_id"], item.get("size", "M")
+    )
     add_qty = int(item.get("quantity", 1))
     max_stock = int(item.get("max_stock", 0))
 
     for existing in cart:
-        if existing["product_id"] == pid:
+        if existing.get("cart_line_id", existing["product_id"]) == line_id:
             new_qty = int(existing["quantity"]) + add_qty
             if new_qty > max_stock:
                 return False
@@ -58,15 +69,16 @@ def add_to_cart(item: dict[str, Any]) -> bool:
 
     if add_qty > max_stock:
         return False
-    cart.append({**item, "quantity": add_qty})
+    cart.append({**item, "cart_line_id": line_id, "quantity": add_qty})
     return True
 
 
-def update_qty(product_id: str, qty: int) -> bool:
+def update_qty(cart_line_id: str, qty: int) -> bool:
     cart = _ensure_cart()
     qty = max(int(qty), 1)
     for item in cart:
-        if item["product_id"] == product_id:
+        cid = item.get("cart_line_id", item["product_id"])
+        if cid == cart_line_id:
             if qty > int(item.get("max_stock", 0)):
                 return False
             item["quantity"] = qty
@@ -74,10 +86,12 @@ def update_qty(product_id: str, qty: int) -> bool:
     return False
 
 
-def remove_from_cart(product_id: str) -> None:
+def remove_from_cart(cart_line_id: str) -> None:
     cart = _ensure_cart()
     st.session_state[CART_KEY] = [
-        i for i in cart if i["product_id"] != product_id
+        i
+        for i in cart
+        if i.get("cart_line_id", i["product_id"]) != cart_line_id
     ]
 
 

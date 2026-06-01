@@ -12,6 +12,7 @@ from lib.catalog import (
     update_gift,
     upload_image,
 )
+from lib.images import normalize_image_urls, render_admin_gallery
 from lib.utils import format_currency
 
 configure_page("Admin — Brindes", layout="wide", sidebar_state="expanded")
@@ -23,12 +24,21 @@ st.title("🎁 Brindes")
 
 tab_list, tab_new = st.tabs(["Lista de brindes", "Novo brinde"])
 
+
+def _sync_gift_image_fields(urls: list[str]) -> dict:
+    return {
+        "image_urls": urls,
+        "image_url": urls[0] if urls else None,
+    }
+
+
 with tab_new:
     with st.form("new_gift"):
         name = st.text_input("Nome do brinde")
-        photo = st.file_uploader(
-            "Foto do brinde",
+        photos = st.file_uploader(
+            "Fotos do brinde",
             type=["png", "jpg", "jpeg", "webp"],
+            accept_multiple_files=True,
         )
         stock = st.number_input("Estoque", min_value=0, value=0, step=1)
         purchase_price = st.number_input(
@@ -59,11 +69,13 @@ with tab_new:
                         "sale_markup": sale_markup,
                         "active": active,
                     }
-                    if photo:
+                    image_urls = []
+                    for photo in photos or []:
                         img_bytes = resize_image(photo.read())
-                        data["image_url"] = upload_image(
-                            img_bytes, photo.name, folder="gifts"
+                        image_urls.append(
+                            upload_image(img_bytes, photo.name, folder="gifts")
                         )
+                    data.update(_sync_gift_image_fields(image_urls))
                     create_gift(data)
                     st.success("Brinde cadastrado!")
                     st.rerun()
@@ -86,16 +98,27 @@ with tab_list:
     else:
         for gift in gifts:
             status = "✅" if gift.get("active", True) else "⏸️"
-            with st.expander(
-                f"{status} {gift['name']} — Estoque: {gift['stock']}"
-            ):
-                if gift.get("image_url"):
-                    st.image(gift["image_url"], width=120)
+            stock_val = int(gift.get("stock", 0))
+            stock_label = f"Estoque: {stock_val}"
+            if stock_val <= 0:
+                stock_label += " ⚠️ esgotado"
+            with st.expander(f"{status} {gift['name']} — {stock_label}"):
+                urls = normalize_image_urls(gift)
+                st.markdown("**Fotos**")
+                render_admin_gallery(
+                    urls,
+                    f"gift_{gift['id']}",
+                    lambda new_urls, gid=gift["id"]: update_gift(
+                        gid, _sync_gift_image_fields(new_urls)
+                    ),
+                )
+
                 with st.form(f"edit_gift_{gift['id']}"):
                     name = st.text_input("Nome", value=gift["name"], key=f"name_{gift['id']}")
-                    new_photo = st.file_uploader(
-                        "Nova foto",
+                    new_photos = st.file_uploader(
+                        "Adicionar fotos",
                         type=["png", "jpg", "jpeg", "webp"],
+                        accept_multiple_files=True,
                         key=f"photo_{gift['id']}",
                     )
                     stock = st.number_input(
@@ -105,6 +128,8 @@ with tab_list:
                         step=1,
                         key=f"stock_{gift['id']}",
                     )
+                    if stock <= 0:
+                        st.warning("Brinde esgotado — novas vendas com este brinde serão bloqueadas.")
                     purchase_price = st.number_input(
                         "Preço de compra",
                         min_value=0.0,
@@ -162,11 +187,16 @@ with tab_list:
                                 "sale_markup": sale_markup,
                                 "active": active,
                             }
-                            if new_photo:
-                                img_bytes = resize_image(new_photo.read())
-                                data["image_url"] = upload_image(
-                                    img_bytes, new_photo.name, folder="gifts"
-                                )
+                            if new_photos:
+                                merged = list(normalize_image_urls(gift))
+                                for photo in new_photos:
+                                    img_bytes = resize_image(photo.read())
+                                    merged.append(
+                                        upload_image(
+                                            img_bytes, photo.name, folder="gifts"
+                                        )
+                                    )
+                                data.update(_sync_gift_image_fields(merged))
                             update_gift(gift["id"], data)
                             st.success("Atualizado!")
                             st.rerun()

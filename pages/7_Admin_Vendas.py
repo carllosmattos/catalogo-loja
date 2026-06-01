@@ -9,6 +9,7 @@ from lib.auth import require_auth, render_sidebar
 from lib.branding import configure_page
 from lib.customers import search_customers
 from lib.catalog import fetch_active_promotions, fetch_all_products, fetch_product_gifts
+from lib.product_sizes import SIZES, stock_for_size, total_stock
 from lib.profit import calculate_profit
 from lib.sales import (
     cancel_sale,
@@ -35,7 +36,11 @@ tab_nova, tab_historico, tab_relatorio, tab_canceladas = st.tabs(
 
 products = fetch_all_products()
 promotions = fetch_active_promotions()
-active_products = [p for p in products if p.get("active") and int(p.get("stock", 0)) > 0]
+active_products = [
+    p
+    for p in products
+    if p.get("active") and total_stock(p.get("sizes") or []) > 0
+]
 
 # ── Nova venda ──────────────────────────────────────────────
 with tab_nova:
@@ -109,7 +114,7 @@ with tab_nova:
         st.subheader("Produto")
 
         product_map = {
-            f"{p['name']} ({p.get('size', '—')}) — estoque {p['stock']}": p
+            f"{p['name']} — estoque {total_stock(p.get('sizes') or [])}": p
             for p in active_products
         }
 
@@ -120,8 +125,43 @@ with tab_nova:
             key="sale_product",
         )
         product = product_map[selected]
+        sizes = product.get("sizes") or []
+        in_stock = [s for s in SIZES if stock_for_size(sizes, s) > 0]
+        size_key = "sale_size"
+        if "sale_product_prev" not in st.session_state:
+            st.session_state.sale_product_prev = selected
+        if st.session_state.sale_product_prev != selected:
+            st.session_state[size_key] = in_stock[0] if in_stock else "M"
+            st.session_state.sale_product_prev = selected
+        if size_key not in st.session_state or st.session_state[size_key] not in SIZES:
+            st.session_state[size_key] = in_stock[0] if in_stock else "M"
+
+        st.markdown("**Tamanho**")
+        sz_cols = st.columns(3)
+        for sz, scol in zip(SIZES, sz_cols):
+            qty_sz = stock_for_size(sizes, sz)
+            with scol:
+                label = f"{sz} ({qty_sz})" if qty_sz > 0 else f"{sz} ✗"
+                if st.button(
+                    label,
+                    key=f"sale_sz_{sz}",
+                    disabled=qty_sz <= 0,
+                    use_container_width=True,
+                    type="primary"
+                    if st.session_state[size_key] == sz and qty_sz > 0
+                    else "secondary",
+                ):
+                    st.session_state[size_key] = sz
+                    st.rerun()
+
+        selected_size = st.session_state[size_key]
+        if stock_for_size(sizes, selected_size) <= 0:
+            st.warning(f"Tamanho {selected_size} esgotado — escolha outro.")
+
         linked = fetch_product_gifts(product["id"])
-        profit = calculate_profit(product, linked, promotions)
+        profit = calculate_profit(
+            product, linked, promotions, selected_size=selected_size
+        )
         max_qty = max(int(profit.stock), 1)
 
         quantity = st.number_input(
@@ -201,6 +241,7 @@ with tab_nova:
                             customer_address=customer_address,
                             notes=notes,
                             quantity=quantity,
+                            selected_size=selected_size,
                         )
                         for key in (
                             "sale_cust_name",

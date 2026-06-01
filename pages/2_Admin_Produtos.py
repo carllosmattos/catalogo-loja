@@ -23,6 +23,13 @@ from lib.categories import (
     set_category_active,
     update_category,
 )
+from lib.images import normalize_image_urls, render_admin_gallery
+from lib.product_sizes import (
+    SIZES,
+    fetch_product_sizes,
+    set_product_sizes,
+    size_stock_warnings,
+)
 from lib.profit import calculate_profit
 from lib.utils import format_currency
 
@@ -76,7 +83,6 @@ with tab_new:
         name = st.text_input("Nome da peça")
         description = st.text_area("Descrição")
         category_id, category = _category_fields("new")
-        size = st.text_input("Tamanho", placeholder="Ex: P, M, G")
 
         col1, col2 = st.columns(2)
         with col1:
@@ -97,8 +103,16 @@ with tab_new:
                 step=0.01,
                 help="0 se você absorver o frete",
             )
-            stock = st.number_input("Estoque", min_value=0, value=0, step=1)
             active = st.checkbox("Ativo no catálogo", value=True)
+
+        st.markdown("**Estoque por tamanho**")
+        sc1, sc2, sc3 = st.columns(3)
+        with sc1:
+            stock_p = st.number_input("P", min_value=0, value=0, step=1, key="new_st_p")
+        with sc2:
+            stock_m = st.number_input("M", min_value=0, value=0, step=1, key="new_st_m")
+        with sc3:
+            stock_g = st.number_input("G", min_value=0, value=0, step=1, key="new_st_g")
 
         images = st.file_uploader(
             "Fotos do produto",
@@ -140,17 +154,22 @@ with tab_new:
                             "description": description,
                             "category": category,
                             "category_id": category_id,
-                            "size": size,
+                            "size": "",
                             "image_urls": image_urls,
                             "purchase_price": purchase_price,
                             "purchase_freight": purchase_freight,
                             "sale_price": sale_price,
                             "sale_freight": sale_freight,
-                            "stock": stock,
+                            "stock": stock_p + stock_m + stock_g,
                             "active": active,
                         }
                     )
 
+                    if product.get("id"):
+                        set_product_sizes(
+                            product["id"],
+                            {"P": stock_p, "M": stock_m, "G": stock_g},
+                        )
                     if selected_gifts and product.get("id"):
                         links = [
                             {
@@ -205,16 +224,26 @@ with tab_list:
                     except Exception as e:
                         st.error(f"Erro: {e}")
                 linked = fetch_product_gifts(product["id"], active_gifts_only=False)
+                sizes = product.get("sizes") or fetch_product_sizes(product["id"])
+                for warn in size_stock_warnings(sizes):
+                    if "todos" in warn.lower():
+                        st.error(f"⚠️ {warn}")
+                    else:
+                        st.warning(f"⚠️ {warn}")
+
+                urls = normalize_image_urls(product)
+                st.markdown("**Fotos**")
+                render_admin_gallery(
+                    urls,
+                    f"prod_{product['id']}",
+                    lambda new_urls: update_product(
+                        product["id"], {"image_urls": new_urls}
+                    ),
+                )
+
                 profit = calculate_profit(product, linked)
 
-                col_img, col_form = st.columns([1, 2])
-                with col_img:
-                    urls = product.get("image_urls") or []
-                    if urls:
-                        st.image(urls[0], use_container_width=True)
-
-                with col_form:
-                    with st.form(f"edit_product_{product['id']}"):
+                with st.form(f"edit_product_{product['id']}"):
                         name = st.text_input(
                             "Nome", value=product["name"], key=f"n_{product['id']}"
                         )
@@ -228,11 +257,23 @@ with tab_list:
                             default_name=product.get("category", ""),
                             default_id=product.get("category_id"),
                         )
-                        size = st.text_input(
-                            "Tamanho",
-                            value=product.get("size", ""),
-                            key=f"s_{product['id']}",
-                        )
+
+                        st.markdown("**Estoque por tamanho**")
+                        size_stocks = {}
+                        sc1, sc2, sc3 = st.columns(3)
+                        for sz, scol in zip(SIZES, (sc1, sc2, sc3)):
+                            current = next(
+                                (int(s["stock"]) for s in sizes if s["size"] == sz),
+                                0,
+                            )
+                            with scol:
+                                size_stocks[sz] = st.number_input(
+                                    sz,
+                                    min_value=0,
+                                    value=current,
+                                    step=1,
+                                    key=f"st_{product['id']}_{sz}",
+                                )
 
                         c1, c2 = st.columns(2)
                         with c1:
@@ -265,18 +306,18 @@ with tab_list:
                                 step=0.01,
                                 key=f"sf_{product['id']}",
                             )
-                            stock = st.number_input(
-                                "Estoque",
-                                min_value=0,
-                                value=int(product["stock"]),
-                                step=1,
-                                key=f"st_{product['id']}",
-                            )
                             active = st.checkbox(
                                 "Ativo",
                                 value=product["active"],
                                 key=f"ac_{product['id']}",
                             )
+
+                        new_images = st.file_uploader(
+                            "Adicionar fotos",
+                            type=["png", "jpg", "jpeg", "webp"],
+                            accept_multiple_files=True,
+                            key=f"img_{product['id']}",
+                        )
 
                         current_gift_names = [
                             lg["gift_data"]["name"]
@@ -315,13 +356,6 @@ with tab_list:
                                 key=f"eq_{product['id']}_{gn}",
                             )
 
-                        new_images = st.file_uploader(
-                            "Adicionar fotos",
-                            type=["png", "jpg", "jpeg", "webp"],
-                            accept_multiple_files=True,
-                            key=f"img_{product['id']}",
-                        )
-
                         margin_class = (
                             "profit-positive"
                             if profit.margem_percent >= 10
@@ -357,22 +391,23 @@ with tab_list:
                                     "description": description,
                                     "category": category,
                                     "category_id": category_id,
-                                    "size": size,
+                                    "size": "",
                                     "purchase_price": purchase_price,
                                     "purchase_freight": purchase_freight,
                                     "sale_price": sale_price,
                                     "sale_freight": sale_freight,
-                                    "stock": stock,
+                                    "stock": sum(size_stocks.values()),
                                     "active": active,
                                 }
                                 if new_images:
-                                    urls = list(product.get("image_urls") or [])
+                                    urls = list(normalize_image_urls(product))
                                     for img in new_images:
                                         img_bytes = resize_image(img.read())
                                         urls.append(upload_image(img_bytes, img.name))
                                     data["image_urls"] = urls
 
                                 update_product(product["id"], data)
+                                set_product_sizes(product["id"], size_stocks)
                                 links = [
                                     {
                                         "product_id": product["id"],
