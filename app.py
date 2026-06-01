@@ -53,7 +53,7 @@ except Exception as e:
     st.info("Tente novamente em alguns instantes.")
     st.stop()
 
-inject_theme(settings, hide_sidebar=True, catalog_menu=True)
+inject_theme(settings, hide_sidebar=True)
 
 store_name = settings["store_name"]
 whatsapp_number = settings.get("whatsapp_number", "")
@@ -339,25 +339,22 @@ else:
             )
 
             if not all_oos:
-                st.markdown(
-                    f'<span class="size-picker-anchor" data-pid="{pid}"></span>',
-                    unsafe_allow_html=True,
-                )
-                sz_cols = st.columns(3, gap="small")
-                for sz, scol in zip(SIZES, sz_cols):
+                def _size_label(sz: str) -> str:
                     qty = stock_for_size(sizes, sz)
-                    with scol:
-                        active = selected_size == sz
-                        label = f"{sz}·{qty}" if qty > 0 else f"{sz} ✗"
-                        if st.button(
-                            label,
-                            key=f"sz_{pid}_{sz}",
-                            disabled=qty <= 0,
-                            use_container_width=True,
-                            type="primary" if active and qty > 0 else "secondary",
-                        ):
-                            st.session_state[size_state_key] = sz
-                            st.rerun()
+                    return f"{sz} · {qty}" if qty > 0 else f"{sz} ✗"
+
+                picked = st.radio(
+                    "Tamanho",
+                    SIZES,
+                    index=SIZES.index(selected_size) if selected_size in SIZES else 0,
+                    horizontal=True,
+                    format_func=_size_label,
+                    key=f"size_radio_{pid}",
+                    label_visibility="collapsed",
+                )
+                if picked != st.session_state[size_state_key]:
+                    st.session_state[size_state_key] = picked
+                    st.rerun()
 
             if all_oos:
                 st.warning("Produto esgotado em todos os tamanhos.")
@@ -372,10 +369,6 @@ else:
             elif not profit.gift_stock_ok:
                 st.warning("Brinde indisponível no momento.")
             else:
-                st.markdown(
-                    f'<span class="product-actions-anchor" data-pid="{pid}"></span>',
-                    unsafe_allow_html=True,
-                )
                 act_add, act_buy = st.columns(2, gap="small")
                 with act_add:
                     if st.button(

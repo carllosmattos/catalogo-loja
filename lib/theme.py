@@ -8,12 +8,7 @@ import streamlit as st
 from lib.branding import DEFAULT_SETTINGS as DEFAULT_COLORS
 
 
-def inject_theme(
-    settings: dict | None = None,
-    hide_sidebar: bool = False,
-    *,
-    catalog_menu: bool = False,
-):
+def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
     primary = (settings or {}).get("primary_color", DEFAULT_COLORS["primary_color"])
     secondary = (settings or {}).get(
         "secondary_color", DEFAULT_COLORS["secondary_color"]
@@ -21,7 +16,7 @@ def inject_theme(
     accent = (settings or {}).get("accent_color", DEFAULT_COLORS["accent_color"])
 
     sidebar_css = ""
-    if hide_sidebar and not catalog_menu:
+    if hide_sidebar:
         sidebar_css = """
         [data-testid="stSidebar"] { display: none !important; }
         [data-testid="collapsedControl"] { display: none !important; }
@@ -31,66 +26,6 @@ def inject_theme(
         [data-testid="stDecoration"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
-        """
-    elif catalog_menu:
-        sidebar_css = """
-        [data-testid="stHeader"] { display: none !important; }
-        [data-testid="stToolbar"] { display: none !important; }
-        [data-testid="stDecoration"] { display: none !important; }
-        #MainMenu { visibility: hidden !important; }
-        footer { visibility: hidden !important; }
-
-        [data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, #fff 0%, #fff8fb 100%);
-            border-right: 1px solid #f0e0ea;
-            min-width: 240px !important;
-            max-width: min(82vw, 300px) !important;
-        }}
-
-        [data-testid="stSidebar"] > div:first-child {{
-            padding-top: 1.25rem;
-        }}
-
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="collapsedControl"] {{
-            color: var(--primary) !important;
-            z-index: 99999 !important;
-        }}
-
-        [data-testid="stSidebarCollapsedControl"] button,
-        [data-testid="collapsedControl"] button {{
-            color: var(--primary) !important;
-            border: 1px solid #f0e0ea !important;
-            border-radius: 8px !important;
-            background: #fff !important;
-            box-shadow: 0 2px 8px rgba(199, 21, 133, 0.12) !important;
-        }}
-
-        .catalog-sidebar-store {{
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0 0 0.15rem;
-            font-family: Georgia, "Times New Roman", serif;
-        }}
-
-        .catalog-sidebar-heading {{
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #999;
-            margin: 0 0 0.65rem;
-        }}
-
-        [data-testid="stSidebar"] .catalog-sidebar-menu button {{
-            font-size: 0.88rem !important;
-            min-height: 2.35rem !important;
-            margin-bottom: 0.35rem !important;
-            border-radius: 10px !important;
-            text-align: left !important;
-            justify-content: flex-start !important;
-        }}
         """
 
     st.markdown(
@@ -115,6 +50,80 @@ def inject_theme(
             color: #666;
             text-align: center;
             margin: 0 0 0.35rem;
+        }}
+
+        .catalog-topbar {{
+            margin-bottom: 0.35rem;
+        }}
+
+        .catalog-topbar [data-testid="column"]:first-child button {{
+            min-height: 2rem !important;
+            font-size: 1.05rem !important;
+            padding: 0.2rem 0.5rem !important;
+            border-radius: 8px !important;
+        }}
+
+        .catalog-topbar-title-wrap {{
+            display: flex;
+            align-items: center;
+            min-height: 2rem;
+        }}
+
+        .catalog-topbar-title {{
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+        }}
+
+        /* Tamanhos P/M/G — radio horizontal compacto */
+        div[data-testid="stRadio"] > div {{
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            gap: 0.2rem !important;
+            width: 100% !important;
+        }}
+
+        div[data-testid="stRadio"] > div > label {{
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 0.28rem 0.1rem !important;
+            font-size: 0.68rem !important;
+            justify-content: center !important;
+            text-align: center !important;
+            border-radius: 6px !important;
+        }}
+
+        div[data-testid="stRadio"] > div > label > div {{
+            font-size: 0.68rem !important;
+        }}
+
+        /* Adicionar + Comprar lado a lado no mobile (dentro do card) */
+        @media (max-width: 768px) {{
+            [data-testid="column"] div[data-testid="stHorizontalBlock"],
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] {{
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                gap: 0.25rem !important;
+            }}
+
+            [data-testid="column"] div[data-testid="stHorizontalBlock"] > div,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] > div {{
+                flex: 1 1 0% !important;
+                min-width: 0 !important;
+                width: auto !important;
+                max-width: none !important;
+            }}
+
+            [data-testid="column"] div[data-testid="stHorizontalBlock"] button,
+            [data-testid="column"] div[data-testid="stHorizontalBlock"] a,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] button,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] a {{
+                font-size: 0.65rem !important;
+                min-height: 1.75rem !important;
+                padding: 0.22rem 0.1rem !important;
+                white-space: nowrap !important;
+            }}
         }}
 
         .catalog-nav-compact {{
@@ -350,61 +359,6 @@ def inject_theme(
         .size-picker-anchor,
         .product-actions-anchor {{
             display: none;
-        }}
-
-        /* Streamlit empilha colunas no mobile — forçar linha horizontal */
-        @media (max-width: 768px) {{
-            section.main .block-container div[data-testid="stHorizontalBlock"] {{
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
-                width: 100% !important;
-                gap: 0.25rem !important;
-            }}
-
-            section.main .block-container div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
-                flex: 1 1 0% !important;
-                min-width: 0 !important;
-                width: auto !important;
-                max-width: none !important;
-            }}
-        }}
-
-        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] {{
-            gap: 0.2rem !important;
-            margin: 0.15rem 0 0.25rem !important;
-        }}
-
-        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
-            padding: 0 0.06rem !important;
-            min-width: 0 !important;
-        }}
-
-        .size-picker-anchor ~ div[data-testid="stHorizontalBlock"] button {{
-            font-size: 0.62rem !important;
-            min-height: 1.4rem !important;
-            padding: 0.1rem 0.05rem !important;
-            line-height: 1.1 !important;
-            border-radius: 6px !important;
-            white-space: nowrap !important;
-        }}
-
-        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] {{
-            gap: 0.25rem !important;
-            margin-top: 0.15rem !important;
-        }}
-
-        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] [data-testid="column"] {{
-            padding: 0 0.08rem !important;
-            min-width: 0 !important;
-        }}
-
-        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] button,
-        .product-actions-anchor ~ div[data-testid="stHorizontalBlock"] a {{
-            font-size: 0.65rem !important;
-            min-height: 1.7rem !important;
-            padding: 0.2rem 0.1rem !important;
-            line-height: 1.15 !important;
-            white-space: nowrap !important;
         }}
 
         .catalog-back-top {{

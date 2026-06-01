@@ -1,4 +1,4 @@
-"""Navegação do catálogo público — menu lateral (sidebar)."""
+"""Navegação do catálogo público — menu ☰ sempre visível."""
 
 from __future__ import annotations
 
@@ -25,38 +25,43 @@ def render_catalog_nav(
     cart_count: int = 0,
     store_name: str = "",
 ) -> str:
-    """Menu lateral (abre/fecha pelo ícone ☰). Retorna a view ativa."""
+    """Barra superior com ☰ (popover) + título da seção ativa."""
     if "catalog_view" not in st.session_state:
         st.session_state.catalog_view = options[0]
 
     current = st.session_state.catalog_view
+    current_label = _nav_label(current, cart_count)
 
-    with st.sidebar:
-        st.markdown('<div class="catalog-sidebar-menu">', unsafe_allow_html=True)
-        if store_name:
-            st.markdown(
-                f'<p class="catalog-sidebar-store">{html.escape(store_name)}</p>',
-                unsafe_allow_html=True,
-            )
-        st.markdown('<p class="catalog-sidebar-heading">Menu</p>', unsafe_allow_html=True)
-
-        for opt in options:
-            label = _nav_label(opt, cart_count)
-            icon = NAV_ICONS.get(opt, "•")
-            active = current == opt
-            if st.button(
-                f"{icon}  {label}",
-                key=f"catalog_nav_{opt}",
-                use_container_width=True,
-                type="primary" if active else "secondary",
-            ):
-                if st.session_state.catalog_view != opt:
-                    st.session_state.catalog_view = opt
-                    if opt == "Catálogo":
-                        st.session_state.catalog_limit = 20
-                    st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('<div class="catalog-topbar">', unsafe_allow_html=True)
+    bar_menu, bar_title = st.columns([1, 5], gap="small")
+    with bar_menu:
+        with st.popover("☰", help="Abrir menu"):
+            if store_name:
+                st.caption(store_name)
+            st.markdown("**Menu**")
+            for opt in options:
+                label = _nav_label(opt, cart_count)
+                icon = NAV_ICONS.get(opt, "•")
+                active = current == opt
+                if st.button(
+                    f"{icon}  {label}",
+                    key=f"catalog_nav_{opt}",
+                    use_container_width=True,
+                    type="primary" if active else "secondary",
+                ):
+                    if st.session_state.catalog_view != opt:
+                        st.session_state.catalog_view = opt
+                        if opt == "Catálogo":
+                            st.session_state.catalog_limit = 20
+                        st.rerun()
+    with bar_title:
+        st.markdown(
+            f'<div class="catalog-topbar-title-wrap">'
+            f'<span class="catalog-topbar-title">{html.escape(current_label)}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    st.markdown("</div>", unsafe_allow_html=True)
 
     return st.session_state.catalog_view
 
