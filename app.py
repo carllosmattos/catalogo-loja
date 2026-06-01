@@ -339,22 +339,20 @@ else:
             )
 
             if not all_oos:
-                def _size_label(sz: str) -> str:
+                sz_cols = st.columns(3, gap="small")
+                for sz, scol in zip(SIZES, sz_cols):
                     qty = stock_for_size(sizes, sz)
-                    return f"{sz} · {qty}" if qty > 0 else f"{sz} ✗"
-
-                picked = st.radio(
-                    "Tamanho",
-                    SIZES,
-                    index=SIZES.index(selected_size) if selected_size in SIZES else 0,
-                    horizontal=True,
-                    format_func=_size_label,
-                    key=f"size_radio_{pid}",
-                    label_visibility="collapsed",
-                )
-                if picked != st.session_state[size_state_key]:
-                    st.session_state[size_state_key] = picked
-                    st.rerun()
+                    with scol:
+                        active = selected_size == sz
+                        if st.button(
+                            sz,
+                            key=f"sz_{pid}_{sz}",
+                            disabled=qty <= 0,
+                            use_container_width=True,
+                            type="primary" if active and qty > 0 else "secondary",
+                        ):
+                            st.session_state[size_state_key] = sz
+                            st.rerun()
 
             if all_oos:
                 st.warning("Produto esgotado em todos os tamanhos.")

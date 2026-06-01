@@ -78,27 +78,24 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             color: var(--primary);
         }}
 
-        /* Tamanhos P/M/G — radio horizontal compacto */
-        div[data-testid="stRadio"] > div {{
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            gap: 0.2rem !important;
-            width: 100% !important;
+        /* Tamanhos P/M/G — linha com 3 colunas (só letra, sem quantidade) */
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) {{
+            gap: 0.35rem !important;
+            margin: 0.2rem 0 0.3rem !important;
         }}
 
-        div[data-testid="stRadio"] > div > label {{
-            flex: 1 1 0 !important;
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) > div[data-testid="column"] {{
+            padding: 0 0.12rem !important;
             min-width: 0 !important;
-            margin: 0 !important;
-            padding: 0.28rem 0.1rem !important;
-            font-size: 0.68rem !important;
-            justify-content: center !important;
-            text-align: center !important;
-            border-radius: 6px !important;
         }}
 
-        div[data-testid="stRadio"] > div > label > div {{
-            font-size: 0.68rem !important;
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button {{
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            min-height: 1.85rem !important;
+            padding: 0.35rem 0.2rem !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
         }}
 
         /* Adicionar + Comprar lado a lado no mobile (dentro do card) */
