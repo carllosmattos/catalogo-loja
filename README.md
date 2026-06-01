@@ -18,7 +18,7 @@ Fluxo sugerido: desenvolver em `dev` → validar → merge em `main` → redeplo
 ### Catálogo público
 
 - Layout mobile-first (iPhone / Instagram)
-- Identidade da loja: logo, cores, nome
+- Identidade da loja: banner no catálogo, cores (logo só como favicon)
 - Produtos com foto, preço, estoque, frete e descrição no card
 - Promoções (% ou valor fixo) e brindes visíveis no card
 - **Carrinho**: adicionar peças, alterar quantidade, remover
@@ -36,7 +36,7 @@ Fluxo sugerido: desenvolver em `dev` → validar → merge em `main` → redeplo
 | Produtos | CRUD, fotos, estoque, arquivar / duplicar |
 | Promoções | CRUD, arquivar |
 | Brindes | CRUD com foto, estoque, arquivar |
-| Loja | Nome, logo, cores, WhatsApp |
+| Loja | Nome, banner, cores, WhatsApp |
 | Lucro & Margem | Custo, margem, potencial e realizado no mês |
 | Vendas | Registrar venda, CPF, quantidade, cancelar com estorno |
 
@@ -75,6 +75,7 @@ pip install -r requirements.txt
    | 008 | `008_customers.sql` — clientes + CPF |
    | 009 | `009_customer_address.sql` — endereço + login por telefone |
    | 010 | `010_categories.sql` — categorias + filtro no catálogo |
+   | 011 | `011_banners.sql` — banner padrão e por promoção |
 
 3. Em **Authentication > Users**, crie o usuário admin
 4. Copie **URL** e **anon key** em Settings → API

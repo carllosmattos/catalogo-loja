@@ -4,7 +4,7 @@ import math
 
 import streamlit as st
 
-from lib.branding import configure_page, get_logo_path, merge_brand_settings
+from lib.branding import configure_page, merge_brand_settings
 from lib.cart import (
     add_to_cart,
     cart_item_from_product,
@@ -22,7 +22,7 @@ from lib.catalog import (
     fetch_products_page,
     fetch_store_settings,
 )
-from lib.catalog_display import build_product_card_html
+from lib.catalog_display import build_product_card_html, render_catalog_header
 from lib.categories import fetch_categories
 from lib.customer_session import (
     customer_display_name,
@@ -53,25 +53,15 @@ inject_theme(settings, hide_sidebar=True)
 store_name = settings["store_name"]
 whatsapp_number = settings.get("whatsapp_number", "")
 catalog_customer = get_catalog_customer()
+promotions = fetch_active_promotions()
 
-st.markdown('<div class="store-header">', unsafe_allow_html=True)
-logo_path = get_logo_path()
-if settings.get("logo_url"):
-    st.image(settings["logo_url"], width=140)
-elif logo_path:
-    st.image(str(logo_path), width=140)
-st.markdown(
-    f'<div class="store-name">{store_name}</div></div>',
-    unsafe_allow_html=True,
-)
+render_catalog_header(settings, promotions)
 
 if catalog_customer and catalog_customer.get("name"):
     st.caption(f"Olá, **{customer_display_name(catalog_customer)}**!")
 
 if not whatsapp_number:
     st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
-
-promotions = fetch_active_promotions()
 
 piece_count = cart_piece_count()
 nav_options = ["Catálogo", "Carrinho", "Minha conta"]

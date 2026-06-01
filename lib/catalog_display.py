@@ -2,8 +2,81 @@
 
 from __future__ import annotations
 
+import html
+
+import streamlit as st
+
+from lib.branding import get_logo_path, resolve_catalog_banner, resolve_logo_url
 from lib.profit import GiftCost, ProfitResult
 from lib.utils import format_currency
+
+CAROUSEL_SECONDS = 5
+
+
+def build_banner_header_html(mode: str, urls: list[str]) -> str:
+    """HTML do header com banner único ou carrossel."""
+    if not urls:
+        return ""
+
+    if mode == "carousel" and len(urls) >= 2:
+        n = len(urls)
+        duration = CAROUSEL_SECONDS * n
+        slides = "".join(
+            f'<img class="store-banner store-banner-slide" src="{html.escape(u)}" '
+            f'alt="Promoção {i + 1}">'
+            for i, u in enumerate(urls)
+        )
+        dots = "".join(
+            f'<span class="store-banner-dot" style="animation-delay:{i * CAROUSEL_SECONDS}s"></span>'
+            for i in range(n)
+        )
+        return (
+            f'<div class="store-header store-header-banner">'
+            f'<div class="store-banner-wrap store-banner-carousel" '
+            f'style="--banner-count:{n};--banner-duration:{duration}s">'
+            f'<div class="store-banner-track">{slides}</div>'
+            f'<div class="store-banner-dots">{dots}</div>'
+            f"</div></div>"
+        )
+
+    url = urls[0]
+    return (
+        f'<div class="store-header store-header-banner">'
+        f'<div class="store-banner-wrap">'
+        f'<img class="store-banner" src="{html.escape(url)}" alt="Banner da loja">'
+        f"</div></div>"
+    )
+
+
+def render_catalog_header(settings: dict, promotions: list[dict] | None) -> None:
+    """Renderiza banner ou fallback logo + nome no topo do catálogo."""
+    banner = resolve_catalog_banner(settings, promotions)
+
+    if banner["mode"] != "legacy":
+        st.markdown(build_banner_header_html(banner["mode"], banner["urls"]), unsafe_allow_html=True)
+        return
+
+    store_name = settings.get("store_name", "")
+    st.markdown('<div class="store-header">', unsafe_allow_html=True)
+    logo_url = resolve_logo_url(settings)
+    if logo_url:
+        st.image(logo_url, width=140)
+    else:
+        logo_path = get_logo_path()
+        if logo_path:
+            st.image(str(logo_path), width=140)
+    st.markdown(
+        f'<div class="store-name">{html.escape(store_name)}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def build_banner_preview_html(settings: dict, promotions: list[dict] | None) -> str:
+    """Preview HTML para admin."""
+    banner = resolve_catalog_banner(settings, promotions)
+    if banner["mode"] == "legacy":
+        return ""
+    return build_banner_header_html(banner["mode"], banner["urls"])
 
 
 def _promo_percent(profit: ProfitResult) -> int | None:

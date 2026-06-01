@@ -16,6 +16,7 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 008 | [`migrations/008_customers.sql`](migrations/008_customers.sql) | Clientes (CPF) + vínculo nas vendas |
 | 009 | [`migrations/009_customer_address.sql`](migrations/009_customer_address.sql) | Endereço + login por telefone (RPC) |
 | 010 | [`migrations/010_categories.sql`](migrations/010_categories.sql) | Categorias + filtro no catálogo |
+| 011 | [`migrations/011_banners.sql`](migrations/011_banners.sql) | Banner padrão + banner por promoção |
 
 ## Já rodou o schema antes?
 
@@ -30,6 +31,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Clientes e CPF → **008**
 - Endereço e login por telefone → **009**
 - Categorias de produtos → **010**
+- Banners (padrão e promoções) → **011**
 
 ## Projeto do zero
 

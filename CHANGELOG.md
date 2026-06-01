@@ -4,6 +4,25 @@ Todas as mudanças relevantes deste projeto estão documentadas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [1.2.0] — 2026-05-31
+
+Banners no topo do catálogo substituindo logo + nome.
+
+### Adicionado
+
+- **Banner padrão** — upload em Admin → Loja (`default_banner_url`)
+- **Banner por promoção** — checkbox "Exibir banner no catálogo" + upload em Admin → Promoções
+- **Carrossel automático** quando 2+ promoções ativas têm banner
+- Fallback para [`resources/banner.png`](resources/banner.png) até configurar no admin
+- Migração `011_banners.sql`
+
+### Alterado
+
+- Catálogo público exibe banner no lugar de logo + nome da loja
+- Logo no admin permanece apenas como favicon do navegador
+
+---
+
 ## [1.1.0] — 2026-05-31
 
 Catálogo com categorias, grade em 2 colunas e paginação.
@@ -77,6 +96,7 @@ Versão inicial do repositório.
 - Admin: produtos, promoções, brindes, loja e lucro
 - Schema SQL monolítico (`schema.sql`, `storage.sql`)
 
+[1.2.0]: https://github.com/carllosmattos/catalogo-loja/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/carllosmattos/catalogo-loja/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/carllosmattos/catalogo-loja/compare/06d5e0e...v1.0.0
 [0.1.0]: https://github.com/carllosmattos/catalogo-loja/commit/06d5e0e
