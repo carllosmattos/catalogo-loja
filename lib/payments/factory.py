@@ -4,16 +4,24 @@ from __future__ import annotations
 
 import os
 
-import streamlit as st
-
 from lib.payments.protocols import PaymentGateway
+from lib.supabase_client import _clean, _from_streamlit_secrets
 
 
 def _secret(key: str, default: str = "") -> str:
-    try:
-        return st.secrets.get(key, os.environ.get(key, default))
-    except Exception:
-        return os.environ.get(key, default)
+    value = _from_streamlit_secrets((key,))
+    if value:
+        return value
+    return _clean(os.environ.get(key)) or default
+
+
+def _secret_bool(key: str, default: bool = True) -> bool:
+    raw = _secret(key, "")
+    if not raw:
+        return default
+    if isinstance(raw, bool):
+        return raw
+    return str(raw).lower() in ("1", "true", "yes", "on")
 
 
 def get_payment_gateway() -> PaymentGateway:
@@ -29,13 +37,7 @@ def get_payment_gateway() -> PaymentGateway:
 
 
 def payments_enabled() -> bool:
-    try:
-        flag = st.secrets.get("PAYMENTS_ENABLED", True)
-        if isinstance(flag, str):
-            return flag.lower() in ("1", "true", "yes", "on")
-        return bool(flag)
-    except Exception:
-        return bool(os.environ.get("PAYMENTS_ENABLED", "1") not in ("0", "false", "no"))
+    return _secret_bool("PAYMENTS_ENABLED", True)
 
 
 def app_base_url() -> str:
