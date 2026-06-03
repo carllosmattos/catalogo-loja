@@ -4,6 +4,15 @@ Todas as mudanças relevantes deste projeto estão documentadas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [Unreleased]
+
+### Adicionado
+
+- **Tamanho único (U)** — estoque, cadastro admin, seleção no catálogo e vendas; botão desabilitado quando esgotado
+- Migração `014_size_unique.sql`
+
+---
+
 ## [1.3.0] — 2026-05-31
 
 Estoque por tamanho (P/M/G), galerias de fotos com carrossel e avisos de esgotado.

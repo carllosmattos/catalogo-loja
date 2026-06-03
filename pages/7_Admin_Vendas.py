@@ -9,7 +9,7 @@ from lib.auth import require_auth, render_sidebar
 from lib.branding import configure_page
 from lib.customers import search_customers
 from lib.catalog import fetch_active_promotions, fetch_all_products, fetch_product_gifts
-from lib.product_sizes import SIZES, stock_for_size, total_stock
+from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_stock
 from lib.profit import calculate_profit
 from lib.sales import (
     cancel_sale,
@@ -131,17 +131,17 @@ with tab_nova:
         if "sale_product_prev" not in st.session_state:
             st.session_state.sale_product_prev = selected
         if st.session_state.sale_product_prev != selected:
-            st.session_state[size_key] = in_stock[0] if in_stock else "M"
+            st.session_state[size_key] = in_stock[0] if in_stock else "U"
             st.session_state.sale_product_prev = selected
         if size_key not in st.session_state or st.session_state[size_key] not in SIZES:
-            st.session_state[size_key] = in_stock[0] if in_stock else "M"
+            st.session_state[size_key] = in_stock[0] if in_stock else "U"
 
         st.markdown("**Tamanho**")
-        sz_cols = st.columns(3)
+        sz_cols = st.columns(len(SIZES))
         for sz, scol in zip(SIZES, sz_cols):
             qty_sz = stock_for_size(sizes, sz)
             with scol:
-                label = f"{sz} ({qty_sz})" if qty_sz > 0 else f"{sz} ✗"
+                label = size_display_label(sz)
                 if st.button(
                     label,
                     key=f"sale_sz_{sz}",
@@ -156,7 +156,9 @@ with tab_nova:
 
         selected_size = st.session_state[size_key]
         if stock_for_size(sizes, selected_size) <= 0:
-            st.warning(f"Tamanho {selected_size} esgotado — escolha outro.")
+            st.warning(
+                f"Tamanho {size_display_label(selected_size)} esgotado — escolha outro."
+            )
 
         linked = fetch_product_gifts(product["id"])
         profit = calculate_profit(

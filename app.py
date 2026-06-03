@@ -36,7 +36,7 @@ from lib.customer_session import (
     set_catalog_customer,
 )
 from lib.profit import calculate_profit
-from lib.product_sizes import SIZES, stock_for_size, total_stock
+from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_stock
 from lib.social import render_developer_footer, render_store_social_bar
 from lib.theme import inject_theme
 from lib.utils import format_cpf, format_currency, is_valid_cpf
@@ -183,7 +183,7 @@ elif view == "Carrinho":
             st.markdown('<div class="cart-item">', unsafe_allow_html=True)
             st.markdown(f"**{item.get('name', 'Peça')}**")
             if item.get("size"):
-                st.caption(f"Tam. {item['size']}")
+                st.caption(f"Tam. {size_display_label(item['size'])}")
             st.caption(
                 f"Unit. {format_currency(unit)} · "
                 f"Subtotal {format_currency(subtotal)}"
@@ -318,7 +318,7 @@ else:
             if size_state_key not in st.session_state or (
                 st.session_state[size_state_key] not in SIZES
             ):
-                st.session_state[size_state_key] = in_stock[0] if in_stock else "M"
+                st.session_state[size_state_key] = in_stock[0] if in_stock else "U"
 
             selected_size = st.session_state[size_state_key]
             profit = calculate_profit(
@@ -333,19 +333,19 @@ else:
                     profit,
                     all_oos,
                     compact=True,
-                    size_hint=selected_size,
+                    size_hint=size_display_label(selected_size),
                 ),
                 unsafe_allow_html=True,
             )
 
             if not all_oos:
-                sz_cols = st.columns(3, gap="small")
+                sz_cols = st.columns(len(SIZES), gap="small")
                 for sz, scol in zip(SIZES, sz_cols):
                     qty = stock_for_size(sizes, sz)
                     with scol:
                         active = selected_size == sz
                         if st.button(
-                            sz,
+                            size_display_label(sz),
                             key=f"sz_{pid}_{sz}",
                             disabled=qty <= 0,
                             use_container_width=True,
@@ -363,7 +363,9 @@ else:
                     key=f"unavail_{pid}",
                 )
             elif size_oos:
-                st.warning(f"Tamanho {selected_size} esgotado — escolha outro.")
+                st.warning(
+                    f"Tamanho {size_display_label(selected_size)} esgotado — escolha outro."
+                )
             elif not profit.gift_stock_ok:
                 st.warning("Brinde indisponível no momento.")
             else:

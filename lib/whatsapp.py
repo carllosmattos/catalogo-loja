@@ -24,7 +24,9 @@ def build_order_message(
 
     chosen_size = size or product.get("size")
     if chosen_size:
-        lines.append(f"Tamanho: {chosen_size}")
+        from lib.product_sizes import size_display_label
+
+        lines.append(f"Tamanho: {size_display_label(chosen_size)}")
     if product.get("category"):
         lines.append(f"Categoria: {product['category']}")
 
@@ -75,7 +77,9 @@ def build_cart_message(
 
         lines.append(f"{i}. {item.get('name', 'Peça')}")
         if item.get("size"):
-            lines.append(f"   Tam.: {item['size']}")
+            from lib.product_sizes import size_display_label
+
+            lines.append(f"   Tam.: {size_display_label(item['size'])}")
         lines.append(f"   Qtd: {qty}")
         lines.append(f"   Preço unit.: {format_currency(unit_final)}")
 

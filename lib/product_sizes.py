@@ -1,4 +1,4 @@
-"""Estoque por tamanho P/M/G."""
+"""Estoque por tamanho (Único, P, M, G)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,14 @@ from typing import Any
 
 from lib.supabase_client import get_authenticated_client, get_supabase
 
-SIZES = ("P", "M", "G")
+SIZES = ("U", "P", "M", "G")
+
+SIZE_LABELS = {
+    "U": "Único",
+    "P": "P",
+    "M": "M",
+    "G": "G",
+}
 
 
 def default_size_rows() -> list[dict[str, Any]]:
@@ -15,11 +22,21 @@ def default_size_rows() -> list[dict[str, Any]]:
 
 def normalize_size(size: str | None) -> str:
     s = (size or "M").strip().upper()
+    if s in ("UNICO", "ÚNICO", "UNIQUE", "UN"):
+        return "U"
     return s if s in SIZES else "M"
 
 
+def size_display_label(size: str | None) -> str:
+    return SIZE_LABELS.get(normalize_size(size), str(size or ""))
+
+
 def merge_sizes(rows: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
-    by_size = {r["size"]: int(r.get("stock", 0)) for r in (rows or []) if r.get("size") in SIZES}
+    by_size = {
+        r["size"]: int(r.get("stock", 0))
+        for r in (rows or [])
+        if r.get("size") in SIZES
+    }
     return [{"size": s, "stock": by_size.get(s, 0)} for s in SIZES]
 
 
@@ -118,5 +135,6 @@ def size_stock_warnings(sizes: list[dict[str, Any]] | None) -> list[str]:
         return warnings
     for row in merged:
         if int(row["stock"]) <= 0:
-            warnings.append(f"Tamanho {row['size']} esgotado.")
+            label = size_display_label(row["size"])
+            warnings.append(f"Tamanho {label} esgotado.")
     return warnings

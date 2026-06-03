@@ -26,6 +26,7 @@ from lib.categories import (
 from lib.images import normalize_image_urls, render_admin_gallery
 from lib.product_sizes import (
     SIZES,
+    SIZE_LABELS,
     fetch_product_sizes,
     set_product_sizes,
     size_stock_warnings,
@@ -106,13 +107,17 @@ with tab_new:
             active = st.checkbox("Ativo no catálogo", value=True)
 
         st.markdown("**Estoque por tamanho**")
-        sc1, sc2, sc3 = st.columns(3)
-        with sc1:
-            stock_p = st.number_input("P", min_value=0, value=0, step=1, key="new_st_p")
-        with sc2:
-            stock_m = st.number_input("M", min_value=0, value=0, step=1, key="new_st_m")
-        with sc3:
-            stock_g = st.number_input("G", min_value=0, value=0, step=1, key="new_st_g")
+        size_cols = st.columns(len(SIZES))
+        size_inputs = {}
+        for sz, col in zip(SIZES, size_cols):
+            with col:
+                size_inputs[sz] = st.number_input(
+                    SIZE_LABELS[sz],
+                    min_value=0,
+                    value=0,
+                    step=1,
+                    key=f"new_st_{sz.lower()}",
+                )
 
         images = st.file_uploader(
             "Fotos do produto",
@@ -160,16 +165,13 @@ with tab_new:
                             "purchase_freight": purchase_freight,
                             "sale_price": sale_price,
                             "sale_freight": sale_freight,
-                            "stock": stock_p + stock_m + stock_g,
+                            "stock": sum(size_inputs.values()),
                             "active": active,
                         }
                     )
 
                     if product.get("id"):
-                        set_product_sizes(
-                            product["id"],
-                            {"P": stock_p, "M": stock_m, "G": stock_g},
-                        )
+                        set_product_sizes(product["id"], size_inputs)
                     if selected_gifts and product.get("id"):
                         links = [
                             {
@@ -260,15 +262,15 @@ with tab_list:
 
                         st.markdown("**Estoque por tamanho**")
                         size_stocks = {}
-                        sc1, sc2, sc3 = st.columns(3)
-                        for sz, scol in zip(SIZES, (sc1, sc2, sc3)):
+                        edit_size_cols = st.columns(len(SIZES))
+                        for sz, scol in zip(SIZES, edit_size_cols):
                             current = next(
                                 (int(s["stock"]) for s in sizes if s["size"] == sz),
                                 0,
                             )
                             with scol:
                                 size_stocks[sz] = st.number_input(
-                                    sz,
+                                    SIZE_LABELS[sz],
                                     min_value=0,
                                     value=current,
                                     step=1,

@@ -180,9 +180,9 @@ def duplicate_product(product_id: str) -> dict[str, Any]:
         ]
         set_product_gifts(new_id, links)
 
-    from lib.product_sizes import set_product_sizes
+    from lib.product_sizes import SIZES, set_product_sizes
 
-    set_product_sizes(new_id, {"P": 0, "M": 0, "G": 0})
+    set_product_sizes(new_id, {s: 0 for s in SIZES})
 
     return new_product
 
