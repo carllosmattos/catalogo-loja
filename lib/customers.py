@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from lib.supabase_client import get_authenticated_client
-from lib.utils import normalize_cpf, parse_whatsapp_number
+from lib.utils import is_valid_email, normalize_cpf, normalize_email, parse_whatsapp_number
 
 
 def search_customers(query: str, limit: int = 20) -> list[dict[str, Any]]:
@@ -86,11 +86,14 @@ def upsert_customer(
     phone: str,
     cpf: str,
     address: str = "",
+    email: str = "",
 ) -> dict[str, Any]:
     """Cria ou atualiza cliente pelo CPF."""
     normalized = normalize_cpf(cpf)
     if not normalized:
         raise ValueError("CPF inválido.")
+    if not is_valid_email(email):
+        raise ValueError("E-mail inválido.")
 
     client = get_authenticated_client()
     phone_clean = parse_whatsapp_number(phone)
@@ -101,6 +104,7 @@ def upsert_customer(
         "phone": phone_clean,
         "cpf": normalized,
         "address": address.strip(),
+        "email": normalize_email(email),
     }
 
     if existing:

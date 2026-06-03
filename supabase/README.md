@@ -20,6 +20,8 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 012 | [`migrations/012_product_sizes_and_galleries.sql`](migrations/012_product_sizes_and_galleries.sql) | Estoque P/M/G + galerias de fotos |
 | 013 | [`migrations/013_sale_size_stock.sql`](migrations/013_sale_size_stock.sql) | Vendas decrementam estoque por tamanho |
 | 014 | [`migrations/014_size_unique.sql`](migrations/014_size_unique.sql) | Tamanho único (U) + P/M/G |
+| 015 | [`migrations/015_customer_email.sql`](migrations/015_customer_email.sql) | E-mail do cliente (Mercado Pago) |
+| 016 | [`migrations/016_orders_payments.sql`](migrations/016_orders_payments.sql) | Pedidos, PIX, reembolsos |
 
 ## Já rodou o schema antes?
 
@@ -38,6 +40,8 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Estoque por tamanho e galerias → **012**
 - Vendas por tamanho (RPC) → **013**
 - Tamanho único (U) → **014**
+- E-mail em clientes → **015**
+- Pagamentos PIX / pedidos → **016** + Edge Function `mercadopago-webhook`
 
 ## Projeto do zero
 

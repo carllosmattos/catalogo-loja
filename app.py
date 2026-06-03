@@ -20,6 +20,7 @@ from lib.catalog import (
     fetch_active_promotions,
     fetch_distinct_product_categories,
     fetch_product_gifts,
+    fetch_products,
     fetch_products_page,
     fetch_store_settings,
 )
@@ -29,17 +30,25 @@ from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
 from lib.customer_session import (
     customer_display_name,
+    customer_profile_complete,
     get_catalog_customer,
     logout_catalog_customer,
     lookup_by_phone,
     save_profile,
     set_catalog_customer,
 )
+from lib.orders_ui import render_my_orders
+from lib.payments.checkout import (
+    _line_from_product,
+    build_lines_from_cart,
+    start_checkout,
+)
+from lib.payments.factory import payments_enabled
 from lib.profit import calculate_profit
 from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_stock
 from lib.social import render_developer_footer, render_store_social_bar
 from lib.theme import inject_theme
-from lib.utils import format_cpf, format_currency, is_valid_cpf
+from lib.utils import format_cpf, format_currency, is_valid_cpf, is_valid_email
 from lib.whatsapp import build_cart_message, build_order_message, build_whatsapp_url
 
 CATALOG_PAGE_SIZE = 20
@@ -61,8 +70,16 @@ catalog_customer = get_catalog_customer()
 promotions = fetch_active_promotions()
 
 piece_count = cart_piece_count()
-nav_options = ["Catálogo", "Carrinho", "Minha conta"]
+nav_options = ["Catálogo", "Carrinho", "Minhas compras", "Minha conta"]
+_qp = st.query_params
+if _qp.get("view"):
+    st.session_state.catalog_view = _qp.get("view")
+if _qp.get("order") and payments_enabled():
+    st.session_state.catalog_view = "Minhas compras"
+    st.session_state.highlight_order_token = _qp.get("order")
+
 view = render_catalog_nav(nav_options, cart_count=piece_count, store_name=store_name)
+highlight_token = st.session_state.pop("highlight_order_token", None) or _qp.get("order")
 
 render_catalog_header(settings, promotions)
 render_store_social_bar()
@@ -76,8 +93,20 @@ if catalog_customer and catalog_customer.get("name"):
 if not whatsapp_number:
     st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
 
+# ── Minhas compras ──────────────────────────────────────────
+if view == "Minhas compras":
+    if not catalog_customer or not catalog_customer.get("id"):
+        st.warning("Entre em **Minha conta** para ver seus pedidos.")
+    else:
+        render_my_orders(
+            catalog_customer,
+            whatsapp_number=whatsapp_number,
+            store_name=store_name,
+            highlight_token=highlight_token,
+        )
+
 # ── Minha conta ─────────────────────────────────────────────
-if view == "Minha conta":
+elif view == "Minha conta":
     if catalog_customer and catalog_customer.get("id"):
         st.subheader(f"Olá, {customer_display_name(catalog_customer)}!")
         with st.form("edit_profile"):
@@ -93,6 +122,11 @@ if view == "Minha conta":
                 "CPF *",
                 value=format_cpf(catalog_customer.get("cpf", "")),
             )
+            prof_email = st.text_input(
+                "E-mail *",
+                value=catalog_customer.get("email", ""),
+                placeholder="seu@email.com",
+            )
             prof_address = st.text_area(
                 "Endereço de entrega",
                 value=catalog_customer.get("address", ""),
@@ -102,7 +136,11 @@ if view == "Minha conta":
             if save_prof:
                 try:
                     updated = save_profile(
-                        prof_name, prof_phone, prof_cpf, prof_address
+                        prof_name,
+                        prof_phone,
+                        prof_cpf,
+                        prof_address,
+                        prof_email,
                     )
                     set_catalog_customer(updated)
                     st.success("Cadastro atualizado!")
@@ -120,6 +158,7 @@ if view == "Minha conta":
         with st.form("new_profile"):
             new_name = st.text_input("Nome *")
             new_cpf = st.text_input("CPF *", placeholder="000.000.000-00")
+            new_email = st.text_input("E-mail *", placeholder="seu@email.com")
             new_address = st.text_area(
                 "Endereço de entrega",
                 placeholder="Rua, número, bairro, cidade…",
@@ -130,12 +169,15 @@ if view == "Minha conta":
                         st.error("Informe seu nome.")
                     elif not is_valid_cpf(new_cpf):
                         st.error("CPF inválido.")
+                    elif not is_valid_email(new_email):
+                        st.error("E-mail inválido.")
                     else:
                         created = save_profile(
                             new_name,
                             catalog_customer["phone"],
                             new_cpf,
                             new_address,
+                            new_email,
                         )
                         set_catalog_customer(created)
                         st.success("Cadastro criado!")
@@ -224,21 +266,42 @@ elif view == "Carrinho":
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
-        col_wa, col_clear = st.columns([2, 1])
+        pay_ok = payments_enabled() and customer_profile_complete(catalog_customer)
+        col_pay, col_wa, col_clear = st.columns([2, 1, 1])
+        with col_pay:
+            if pay_ok:
+                if st.button(
+                    "Pagar com PIX",
+                    type="primary",
+                    use_container_width=True,
+                    key="cart_pay_pix",
+                ):
+                    try:
+                        products_map = {
+                            str(p["id"]): p for p in fetch_products(active_only=True)
+                        }
+                        lines = build_lines_from_cart(cart, products_map)
+                        result = start_checkout(catalog_customer, lines)
+                        clear_cart()
+                        st.session_state.highlight_order_token = result["tracking_token"]
+                        st.session_state.catalog_view = "Minhas compras"
+                        if result.get("pix_copy_paste"):
+                            st.session_state.last_pix = result["pix_copy_paste"]
+                        st.rerun()
+                    except Exception as e:
+                        st.error(str(e))
+            elif payments_enabled():
+                st.info("Complete **Minha conta** (e-mail e CPF) para pagar com PIX.")
+            else:
+                st.caption("PIX em configuração.")
         with col_wa:
             if whatsapp_number:
                 cart_msg = build_cart_message(cart, store_name, catalog_customer)
                 wa_url = build_whatsapp_url(whatsapp_number, cart_msg)
                 st.link_button(
-                    "Finalizar no WhatsApp",
+                    "WhatsApp",
                     wa_url,
                     use_container_width=True,
-                    type="primary",
-                )
-            else:
-                st.info(
-                    "WhatsApp da loja ainda não configurado. "
-                    "Peça à loja para ativar o checkout."
                 )
         with col_clear:
             if st.button("Limpar carrinho", key="clear_cart_btn", use_container_width=True):
@@ -384,25 +447,40 @@ else:
                         else:
                             st.error("Estoque insuficiente.")
                 with act_buy:
+                    pay_ready = payments_enabled() and customer_profile_complete(
+                        catalog_customer
+                    )
+                    if pay_ready:
+                        if st.button(
+                            "Pagar PIX",
+                            use_container_width=True,
+                            type="primary",
+                            key=f"buy_pix_{pid}_{selected_size}",
+                        ):
+                            try:
+                                line = _line_from_product(
+                                    product, selected_size, 1, promotions
+                                )
+                                result = start_checkout(catalog_customer, [line])
+                                st.session_state.highlight_order_token = result[
+                                    "tracking_token"
+                                ]
+                                st.session_state.catalog_view = "Minhas compras"
+                                st.rerun()
+                            except Exception as e:
+                                st.error(str(e))
+                    elif payments_enabled():
+                        st.caption("Cadastre e-mail em Minha conta.")
                     if whatsapp_number:
                         message = build_order_message(
                             product, profit, store_name, catalog_customer, size=selected_size
                         )
                         wa_url = build_whatsapp_url(whatsapp_number, message)
                         st.link_button(
-                            "Comprar",
+                            "WhatsApp",
                             wa_url,
                             use_container_width=True,
-                            type="primary",
                             key=f"buy_{pid}_{selected_size}",
-                        )
-                    else:
-                        st.button(
-                            "Comprar",
-                            disabled=True,
-                            use_container_width=True,
-                            key=f"buy_off_{pid}_{selected_size}",
-                            help="WhatsApp da loja não configurado",
                         )
 
     for row_start in range(0, len(page_products), 2):

@@ -9,7 +9,7 @@ from lib.catalog import fetch_active_promotions, fetch_product_gifts
 from lib.customers import upsert_customer
 from lib.profit import calculate_profit, extract_gift_from_link
 from lib.supabase_client import get_authenticated_client
-from lib.utils import is_valid_cpf, normalize_cpf
+from lib.utils import is_valid_cpf, is_valid_email, normalize_cpf
 
 
 def gift_stock_ok_for_quantity(
@@ -32,6 +32,7 @@ def register_sale(
     customer_phone: str = "",
     customer_cpf: str = "",
     customer_address: str = "",
+    customer_email: str = "",
     notes: str = "",
     quantity: int = 1,
     *,
@@ -43,10 +44,16 @@ def register_sale(
         raise ValueError("Informe o nome do cliente.")
     if not is_valid_cpf(customer_cpf):
         raise ValueError("CPF inválido.")
+    if not is_valid_email(customer_email):
+        raise ValueError("E-mail inválido.")
 
     cpf_normalized = normalize_cpf(customer_cpf)
     customer = upsert_customer(
-        customer_name, customer_phone, cpf_normalized, customer_address
+        customer_name,
+        customer_phone,
+        cpf_normalized,
+        customer_address,
+        customer_email,
     )
 
     client = get_authenticated_client()

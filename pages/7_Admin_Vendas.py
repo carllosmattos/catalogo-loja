@@ -20,7 +20,11 @@ from lib.sales import (
     sales_by_day,
     sales_summary,
 )
-from lib.utils import format_cpf, format_currency, is_valid_cpf
+from lib.catalog import fetch_store_settings
+from lib.payments.admin import fetch_order_bundle_by_id, fetch_payment
+from lib.payments.factory import app_base_url
+from lib.payments.whatsapp_payment import build_whatsapp_payment_url
+from lib.utils import format_cpf, format_currency, is_valid_cpf, is_valid_email
 
 configure_page("Admin — Vendas", layout="wide", sidebar_state="expanded")
 render_sidebar()
@@ -47,7 +51,13 @@ with tab_nova:
     if not active_products:
         st.warning("Nenhum produto ativo com estoque. Cadastre em Produtos.")
     else:
-        for key in ("sale_cust_name", "sale_cust_phone", "sale_cust_cpf", "sale_cust_address"):
+        for key in (
+            "sale_cust_name",
+            "sale_cust_phone",
+            "sale_cust_cpf",
+            "sale_cust_email",
+            "sale_cust_address",
+        ):
             if key not in st.session_state:
                 st.session_state[key] = ""
 
@@ -87,6 +97,7 @@ with tab_nova:
                 st.session_state.sale_cust_phone = picked.get("phone", "")
                 st.session_state.sale_cust_cpf = format_cpf(picked["cpf"])
                 st.session_state.sale_cust_address = picked.get("address", "")
+                st.session_state.sale_cust_email = picked.get("email", "")
                 st.rerun()
 
         c1, c2, c3 = st.columns(3)
@@ -104,6 +115,11 @@ with tab_nova:
                 key="sale_cust_cpf",
                 placeholder="000.000.000-00",
             )
+        st.text_input(
+            "E-mail *",
+            key="sale_cust_email",
+            placeholder="cliente@email.com",
+        )
         st.text_area(
             "Endereço de entrega",
             key="sale_cust_address",
@@ -226,11 +242,14 @@ with tab_nova:
                 customer_phone = st.session_state.get("sale_cust_phone", "")
                 customer_cpf = st.session_state.get("sale_cust_cpf", "")
                 customer_address = st.session_state.get("sale_cust_address", "")
+                customer_email = st.session_state.get("sale_cust_email", "")
 
                 if not customer_name:
                     st.error("Informe o nome do cliente.")
                 elif not is_valid_cpf(customer_cpf):
                     st.error("Informe um CPF válido.")
+                elif not is_valid_email(customer_email):
+                    st.error("Informe um e-mail válido.")
                 elif profit.stock < quantity or not gifts_ok:
                     st.error("Estoque insuficiente.")
                 else:
@@ -241,6 +260,7 @@ with tab_nova:
                             customer_phone=customer_phone,
                             customer_cpf=customer_cpf,
                             customer_address=customer_address,
+                            customer_email=customer_email,
                             notes=notes,
                             quantity=quantity,
                             selected_size=selected_size,
@@ -250,6 +270,7 @@ with tab_nova:
                             "sale_cust_phone",
                             "sale_cust_cpf",
                             "sale_cust_address",
+                            "sale_cust_email",
                             "customer_search_results",
                             "customer_search_q",
                         ):
@@ -304,6 +325,37 @@ with tab_historico:
                 st.markdown(f"**Lucro:** {format_currency(float(s.get('lucro', 0)))}")
                 if s.get("notes"):
                     st.caption(s["notes"])
+
+                if s.get("payment_id"):
+                    pay = fetch_payment(str(s["payment_id"]))
+                    if pay:
+                        st.markdown("---")
+                        st.markdown("**Transação**")
+                        st.markdown(f"Status: **{pay.get('status')}** · MP: `{pay.get('provider_payment_id')}`")
+                        if pay.get("pix_copy_paste"):
+                            st.caption("PIX copia e cola:")
+                            st.code(pay["pix_copy_paste"], language=None)
+                if s.get("order_id"):
+                    settings = fetch_store_settings()
+                    wa = settings.get("whatsapp_number", "")
+                    bundle = fetch_order_bundle_by_id(str(s["order_id"]))
+                    if wa and bundle and st.button(
+                        "Enviar venda + PIX no WhatsApp",
+                        key=f"wa_sale_{s['id']}",
+                    ):
+                        base = app_base_url()
+                        token = (bundle.get("order") or {}).get("tracking_token", "")
+                        track = f"{base}?order={token}&view=Minhas%20compras" if base else ""
+                        st.link_button(
+                            "Abrir WhatsApp",
+                            build_whatsapp_payment_url(
+                                wa,
+                                bundle,
+                                settings.get("store_name", "Loja"),
+                                tracking_url=track,
+                            ),
+                            key=f"wa_link_{s['id']}",
+                        )
 
                 confirm_key = f"confirm_cancel_{s['id']}"
                 if confirm_key not in st.session_state:

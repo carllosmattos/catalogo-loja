@@ -9,6 +9,7 @@ import streamlit as st
 NAV_ICONS = {
     "Catálogo": "🏷️",
     "Carrinho": "🛒",
+    "Minhas compras": "📦",
     "Minha conta": "👤",
 }
 

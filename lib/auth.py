@@ -190,6 +190,7 @@ def render_admin_nav():
     st.sidebar.page_link("pages/5_Admin_Loja.py", label="Configurações", icon="🏪")
     st.sidebar.page_link("pages/6_Admin_Lucro.py", label="Lucro & Margem", icon="📊")
     st.sidebar.page_link("pages/7_Admin_Vendas.py", label="Vendas", icon="🛒")
+    st.sidebar.page_link("pages/8_Admin_Pagamentos.py", label="Pagamentos", icon="💳")
     st.sidebar.markdown("---")
     if st.sidebar.button("Sair", use_container_width=True):
         logout()

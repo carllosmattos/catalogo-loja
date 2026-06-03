@@ -7,7 +7,13 @@ from typing import Any
 import streamlit as st
 
 from lib.supabase_client import get_supabase
-from lib.utils import format_cpf, is_valid_cpf, parse_whatsapp_number
+from lib.utils import (
+    format_cpf,
+    is_valid_cpf,
+    is_valid_email,
+    normalize_email,
+    parse_whatsapp_number,
+)
 
 SESSION_KEY = "catalog_customer"
 
@@ -46,9 +52,12 @@ def save_profile(
     phone: str,
     cpf: str,
     address: str = "",
+    email: str = "",
 ) -> dict[str, Any]:
     if not is_valid_cpf(cpf):
         raise ValueError("CPF inválido.")
+    if not is_valid_email(email):
+        raise ValueError("E-mail inválido.")
     digits = parse_whatsapp_number(phone)
     if len(digits) < 10:
         raise ValueError("Telefone inválido.")
@@ -61,6 +70,7 @@ def save_profile(
             "p_phone": digits,
             "p_cpf": "".join(c for c in cpf if c.isdigit()),
             "p_address": address.strip(),
+            "p_email": normalize_email(email),
         },
     ).execute()
     data = result.data
@@ -73,6 +83,19 @@ def save_profile(
 
 def customer_display_name(customer: dict[str, Any]) -> str:
     return customer.get("name") or "Cliente"
+
+
+def customer_profile_complete(customer: dict[str, Any] | None) -> bool:
+    """Perfil mínimo para checkout (nome, CPF, telefone, e-mail)."""
+    if not customer or not customer.get("id"):
+        return False
+    if not customer.get("name", "").strip():
+        return False
+    if not is_valid_cpf(customer.get("cpf", "")):
+        return False
+    if len(parse_whatsapp_number(customer.get("phone", ""))) < 10:
+        return False
+    return is_valid_email(customer.get("email", ""))
 
 
 def customer_for_whatsapp(customer: dict[str, Any] | None) -> list[str]:
@@ -88,6 +111,8 @@ def customer_for_whatsapp(customer: dict[str, Any] | None) -> list[str]:
         lines.append(f"CPF: {format_cpf(customer['cpf'])}")
     if customer.get("address"):
         lines.append(f"Endereço: {customer['address']}")
+    if customer.get("email"):
+        lines.append(f"E-mail: {customer['email']}")
     if lines:
         lines.append("")
     return lines

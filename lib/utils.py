@@ -26,6 +26,24 @@ def format_cpf(cpf: str) -> str:
     return f"{d[:3]}.{d[3:6]}.{d[6:9]}-{d[9:]}"
 
 
+def normalize_email(raw: str) -> str:
+    """Retorna e-mail normalizado ou string vazia."""
+    return raw.strip().lower()
+
+
+def is_valid_email(raw: str) -> bool:
+    email = normalize_email(raw)
+    if not email or " " in email:
+        return False
+    parts = email.split("@")
+    if len(parts) != 2:
+        return False
+    local, domain = parts
+    if not local or not domain or "." not in domain:
+        return False
+    return True
+
+
 def is_valid_cpf(raw: str) -> bool:
     cpf = normalize_cpf(raw)
     if not cpf or len(set(cpf)) == 1:

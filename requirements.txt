@@ -4,3 +4,4 @@ python-dotenv
 Pillow
 extra-streamlit-components>=0.1.71
 pandas>=2.0
+mercadopago>=2.2.0

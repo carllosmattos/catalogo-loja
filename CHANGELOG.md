@@ -10,6 +10,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 - **Tamanho único (U)** — estoque, cadastro admin, seleção no catálogo e vendas; botão desabilitado quando esgotado
 - Migração `014_size_unique.sql`
+- **E-mail do cliente** — Minha conta e admin vendas (obrigatório para Mercado Pago)
+- **Pagamentos PIX (Mercado Pago)** — gateway SOLID, pedidos, webhook, Minhas compras, reembolsos, admin Pagamentos
+- Migrações `015_customer_email.sql`, `016_orders_payments.sql`
+- Edge Function `mercadopago-webhook`
 
 ---
 
