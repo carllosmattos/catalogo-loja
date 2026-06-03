@@ -44,6 +44,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - E-mail em clientes → **015**
 - Pagamentos PIX / pedidos → **016** + Edge Function `mercadopago-webhook`
 - Erro `create_checkout_order not found` → rode **017**
+- Erro `uuid_generate_v4 does not exist` → rode **018**
 
 ## Projeto do zero
 
