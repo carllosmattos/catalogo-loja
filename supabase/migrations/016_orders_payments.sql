@@ -3,7 +3,7 @@
 
 -- ── Pedidos ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS orders (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
     customer_name TEXT NOT NULL DEFAULT '',
     customer_phone TEXT DEFAULT '',
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS orders (
     gateway TEXT DEFAULT 'mercado_pago',
     external_reference TEXT,
     mp_preference_id TEXT,
-    tracking_token UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
+    tracking_token UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
     notes TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     paid_at TIMESTAMPTZ,
@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_tracking ON orders(tracking_token);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
 
 CREATE TABLE IF NOT EXISTS order_items (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id) ON DELETE SET NULL,
     product_name TEXT NOT NULL,
@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
 -- ── Pagamentos ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS payments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     provider TEXT NOT NULL DEFAULT 'mercado_pago',
     provider_payment_id TEXT,
@@ -76,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 
 -- ── Reembolsos ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS refund_requests (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     payment_id UUID REFERENCES payments(id) ON DELETE SET NULL,
     status TEXT NOT NULL DEFAULT 'pending'
@@ -106,18 +106,22 @@ ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE refund_requests ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS orders_auth_all ON orders;
 CREATE POLICY orders_auth_all ON orders
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS order_items_auth_all ON order_items;
 CREATE POLICY order_items_auth_all ON order_items
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS payments_auth_all ON payments;
 CREATE POLICY payments_auth_all ON payments
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS refund_requests_auth_all ON refund_requests;
 CREATE POLICY refund_requests_auth_all ON refund_requests
     FOR ALL USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
@@ -261,7 +265,7 @@ BEGIN
         RAISE EXCEPTION 'Cadastre um e-mail válido em Minha conta';
     END IF;
 
-    v_tracking := uuid_generate_v4();
+    v_tracking := gen_random_uuid();
 
     INSERT INTO orders (
         customer_id, customer_name, customer_phone, customer_cpf, customer_email,

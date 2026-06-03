@@ -22,6 +22,7 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 014 | [`migrations/014_size_unique.sql`](migrations/014_size_unique.sql) | Tamanho único (U) + P/M/G |
 | 015 | [`migrations/015_customer_email.sql`](migrations/015_customer_email.sql) | E-mail do cliente (Mercado Pago) |
 | 016 | [`migrations/016_orders_payments.sql`](migrations/016_orders_payments.sql) | Pedidos, PIX, reembolsos |
+| 017 | [`migrations/017_repair_payment_rpcs.sql`](migrations/017_repair_payment_rpcs.sql) | Reparo se 016 parou no meio (RPC ausente) |
 
 ## Já rodou o schema antes?
 
@@ -42,6 +43,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Tamanho único (U) → **014**
 - E-mail em clientes → **015**
 - Pagamentos PIX / pedidos → **016** + Edge Function `mercadopago-webhook`
+- Erro `create_checkout_order not found` → rode **017**
 
 ## Projeto do zero
 
