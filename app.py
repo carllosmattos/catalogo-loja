@@ -4,7 +4,12 @@ import hashlib
 
 import streamlit as st
 
-from lib.brand_icons import inject_catalog_action_icon_css
+from lib.brand_icons import (
+    HELP_PIX,
+    HELP_PIX_OFF,
+    inject_catalog_action_icon_css,
+    render_whatsapp_action,
+)
 from lib.branding import configure_page, merge_brand_settings
 from lib.cart import (
     add_to_cart,
@@ -468,7 +473,7 @@ else:
                             use_container_width=True,
                             type="primary",
                             key=f"buy_pix_{pid}_{selected_size}",
-                            help="Pagar com PIX",
+                            help=HELP_PIX,
                         ):
                             try:
                                 line = _line_from_product(
@@ -488,7 +493,7 @@ else:
                             disabled=True,
                             use_container_width=True,
                             key=f"buy_pix_off_{pid}_{selected_size}",
-                            help="Complete seu cadastro para pagar com PIX",
+                            help=HELP_PIX_OFF,
                         )
                 with act_wa:
                     if whatsapp_number:
@@ -496,13 +501,7 @@ else:
                             product, profit, store_name, catalog_customer, size=selected_size
                         )
                         wa_url = build_whatsapp_url(whatsapp_number, message)
-                        st.link_button(
-                            "\u200b",
-                            wa_url,
-                            use_container_width=True,
-                            key=f"buy_{pid}_{selected_size}",
-                            help="Comprar pelo WhatsApp",
-                        )
+                        render_whatsapp_action(wa_url)
 
     render_product_grid(page_products, _render_product_cell)
 

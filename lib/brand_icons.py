@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import html
 from pathlib import Path
 
 import streamlit as st
@@ -10,101 +11,113 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent.parent
 ICONS_DIR = ROOT / "resources" / "icons"
 
-# Linha de 3 colunas (🛒 Pix WhatsApp) — distinta da linha de tamanhos (4 colunas)
-_ACTION_ROW = (
-    'div[data-testid="stHorizontalBlock"]:'
-    'has(> div[data-testid="column"]:nth-child(3)):'
-    'not(:has(> div[data-testid="column"]:nth-child(4)))'
-)
+HELP_PIX = "Pagar com PIX"
+HELP_PIX_OFF = "Complete seu cadastro para pagar com PIX"
+HELP_WA = "Comprar pelo WhatsApp"
 
 
 def icon_data_uri(filename: str) -> str:
-    """Retorna data URI do SVG para uso em HTML/CSS."""
+    """Retorna data URI do SVG para uso em HTML."""
     content = (ICONS_DIR / filename).read_bytes()
     b64 = base64.b64encode(content).decode("ascii")
     return f"data:image/svg+xml;base64,{b64}"
 
 
-def _css_url(filename: str) -> str:
-    return f'url("{icon_data_uri(filename)}")'
-
-
 def inject_catalog_action_icon_css() -> None:
-    """Aplica logos oficiais Pix e WhatsApp nos botões de ação do produto."""
-    pix = _css_url("pix.svg")
-    pix_white = _css_url("pix-white.svg")
-    whatsapp = _css_url("whatsapp.svg")
-
-    pix_btn = f"{_ACTION_ROW} > div[data-testid=\"column\"]:nth-child(2) div.stButton > button"
-    wa_btn = (
-        f"{_ACTION_ROW} > div[data-testid=\"column\"]:nth-child(3) "
-        f'a[data-testid="stLinkButton"]'
-    )
+    """Estilos Pix (aria-label) e link WhatsApp."""
+    pix = icon_data_uri("pix.svg")
+    pix_white = icon_data_uri("pix-white.svg")
 
     st.markdown(
         f"""
         <style>
-        {pix_btn} {{
-            position: relative !important;
-            color: transparent !important;
+        button[title="{HELP_PIX}"],
+        button[aria-label="{HELP_PIX}"] {{
             font-size: 0 !important;
-            line-height: 0 !important;
-            overflow: hidden !important;
-        }}
-
-        {pix_btn}::before {{
-            content: "" !important;
-            display: block !important;
-            width: 1.35rem !important;
-            height: 1.35rem !important;
-            margin: 0 auto !important;
-            background-image: {pix} !important;
-            background-repeat: no-repeat !important;
-            background-position: center center !important;
-            background-size: contain !important;
-        }}
-
-        {pix_btn}[kind="primary"]::before,
-        {pix_btn}[data-testid="baseButton-primary"]::before {{
-            background-image: {pix_white} !important;
-        }}
-
-        {wa_btn} {{
-            position: relative !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
             color: transparent !important;
-            font-size: 0 !important;
             line-height: 0 !important;
-            overflow: hidden !important;
             min-height: 2.15rem !important;
         }}
 
-        {wa_btn} p {{
-            display: none !important;
-        }}
-
-        {wa_btn}::before {{
+        button[title="{HELP_PIX}"]::before,
+        button[aria-label="{HELP_PIX}"]::before {{
             content: "" !important;
             display: block !important;
             width: 1.35rem !important;
             height: 1.35rem !important;
             margin: 0 auto !important;
-            background-image: {whatsapp} !important;
-            background-repeat: no-repeat !important;
-            background-position: center center !important;
-            background-size: contain !important;
+            background: url("{pix_white}") center/contain no-repeat !important;
+        }}
+
+        button[title="{HELP_PIX_OFF}"],
+        button[aria-label="{HELP_PIX_OFF}"] {{
+            font-size: 0 !important;
+            color: transparent !important;
+            line-height: 0 !important;
+            min-height: 2.15rem !important;
+        }}
+
+        button[title="{HELP_PIX_OFF}"]::before,
+        button[aria-label="{HELP_PIX_OFF}"]::before {{
+            content: "" !important;
+            display: block !important;
+            width: 1.35rem !important;
+            height: 1.35rem !important;
+            margin: 0 auto !important;
+            background: url("{pix}") center/contain no-repeat !important;
+        }}
+
+        a.catalog-brand-wa {{
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            min-height: 2.15rem !important;
+            padding: 0.28rem 0.15rem !important;
+            border: 1px solid rgba(49, 51, 63, 0.2) !important;
+            border-radius: 0.5rem !important;
+            background: #fff !important;
+            text-decoration: none !important;
+            box-sizing: border-box !important;
+        }}
+
+        a.catalog-brand-wa:hover {{
+            border-color: #25D366 !important;
+            background: #f6fff8 !important;
+        }}
+
+        a.catalog-brand-wa img {{
+            display: block !important;
+            width: 1.35rem !important;
+            height: 1.35rem !important;
         }}
 
         @media (max-width: 480px) {{
-            {pix_btn}::before,
-            {wa_btn}::before {{
+            button[title="{HELP_PIX}"]::before,
+            button[title="{HELP_PIX_OFF}"]::before,
+            button[aria-label="{HELP_PIX}"]::before,
+            button[aria-label="{HELP_PIX_OFF}"]::before,
+            a.catalog-brand-wa img {{
                 width: 1.15rem !important;
                 height: 1.15rem !important;
+            }}
+            a.catalog-brand-wa {{
+                min-height: 1.85rem !important;
             }}
         }}
         </style>
         """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_whatsapp_action(url: str) -> None:
+    """Link WhatsApp com logo oficial."""
+    icon = icon_data_uri("whatsapp.svg")
+    safe_url = html.escape(url, quote=True)
+    st.markdown(
+        f'<a href="{safe_url}" target="_blank" rel="noopener noreferrer" '
+        f'class="catalog-brand-wa" title="{HELP_WA}">'
+        f'<img src="{icon}" alt="WhatsApp"></a>',
         unsafe_allow_html=True,
     )
