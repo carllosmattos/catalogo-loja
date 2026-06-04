@@ -28,6 +28,10 @@ def inject_catalog_action_icon_css() -> None:
     st.markdown(
         """
         <style>
+        :root {
+            --catalog-action-icon: 1.05rem;
+        }
+
         [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit {
             display: flex !important;
             align-items: center !important;
@@ -41,10 +45,18 @@ def inject_catalog_action_icon_css() -> None:
             box-sizing: border-box !important;
         }
 
-        [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit img {
+        .catalog-brand-hit img,
+        a.catalog-brand-wa img {
             display: block !important;
-            width: 1.35rem !important;
-            height: 1.35rem !important;
+            width: var(--catalog-action-icon) !important;
+            height: var(--catalog-action-icon) !important;
+            max-width: var(--catalog-action-icon) !important;
+            max-height: var(--catalog-action-icon) !important;
+            object-fit: contain !important;
+        }
+
+        .catalog-brand-hit--pix img {
+            transform: scale(0.78) !important;
         }
 
         [data-testid="column"]:has(.catalog-brand-hit) div[data-testid="stButton"] > button,
@@ -76,19 +88,15 @@ def inject_catalog_action_icon_css() -> None:
 
         a.catalog-brand-wa img {
             display: block !important;
-            width: 1.35rem !important;
-            height: 1.35rem !important;
         }
 
         @media (max-width: 480px) {
+            :root {
+                --catalog-action-icon: 0.95rem;
+            }
             [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit {
                 min-height: 1.85rem !important;
                 margin-bottom: -1.85rem !important;
-            }
-            [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit img,
-            a.catalog-brand-wa img {
-                width: 1.15rem !important;
-                height: 1.15rem !important;
             }
             [data-testid="column"]:has(.catalog-brand-hit) div[data-testid="stButton"] > button {
                 min-height: 1.85rem !important;
@@ -105,8 +113,9 @@ def inject_catalog_action_icon_css() -> None:
 
 def _brand_hit(icon_file: str, alt: str) -> None:
     icon = icon_data_uri(icon_file)
+    pix_class = " catalog-brand-hit--pix" if alt == "Pix" else ""
     st.markdown(
-        f'<div class="catalog-brand-hit">'
+        f'<div class="catalog-brand-hit{pix_class}">'
         f'<img src="{icon}" alt="{html.escape(alt)}">'
         f"</div>",
         unsafe_allow_html=True,

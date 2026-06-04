@@ -64,17 +64,40 @@ def _inject_catalog_nav_css() -> None:
             }
         }
 
-        div[data-testid="stDialog"] > div {
+        /* Menu mobile — drawer branco full-height, sem fundo cinza */
+        div[data-testid="stDialogBackdrop"] {
+            background: transparent !important;
+        }
+
+        div[data-testid="stDialog"] {
+            padding: 0 !important;
+            background: transparent !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+        }
+
+        div[data-testid="stDialog"] > div,
+        div[data-testid="stDialog"] [data-testid="stModalContainer"],
+        div[data-testid="stDialog"] [role="dialog"] {
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
             margin: 0 !important;
-            height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 100vh !important;
             max-height: 100vh !important;
             width: min(280px, 88vw) !important;
             max-width: min(280px, 88vw) !important;
             border-radius: 0 !important;
+            background: #fff !important;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1) !important;
             padding: 1rem 0.85rem !important;
+            box-sizing: border-box !important;
+        }
+
+        div[data-testid="stDialog"] button[aria-label="Close"],
+        div[data-testid="stDialog"] [data-testid="stModalCloseButton"] {
+            color: #666 !important;
         }
         </style>
         """,
