@@ -290,19 +290,20 @@ def inject_theme(
 
         .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
         .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
-            min-height: 2.15rem !important;
+            min-height: var(--catalog-action-btn-height, 2.15rem) !important;
+            max-height: var(--catalog-action-btn-height, 2.15rem) !important;
             font-size: 1.05rem !important;
             padding: 0.28rem 0.15rem !important;
             line-height: 1 !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
+            box-sizing: border-box !important;
         }}
 
         @media (max-width: 480px) {{
             .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
             .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
-                min-height: 1.85rem !important;
                 font-size: 0.95rem !important;
                 padding: 0.22rem 0.1rem !important;
             }}

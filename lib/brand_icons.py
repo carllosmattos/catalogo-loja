@@ -34,6 +34,40 @@ def inject_catalog_action_icon_css() -> None:
         :root {{
             --catalog-action-icon: 1.05rem;
             --catalog-pix-icon: calc(var(--catalog-action-icon) * 0.82);
+            --catalog-action-btn-height: 2.15rem;
+        }}
+
+        /* Altura uniforme: carrinho, Pix e WhatsApp */
+        .catalog-product-grid
+            div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4)))
+            > [data-testid="column"] {{
+            display: flex !important;
+            align-items: stretch !important;
+        }}
+
+        .catalog-product-grid
+            div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4)))
+            > [data-testid="column"] .stElementContainer,
+        .catalog-product-grid
+            div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4)))
+            > [data-testid="column"] div.stButton {{
+            width: 100% !important;
+            margin: 0 !important;
+            height: var(--catalog-action-btn-height) !important;
+            min-height: var(--catalog-action-btn-height) !important;
+            max-height: var(--catalog-action-btn-height) !important;
+        }}
+
+        .catalog-product-grid
+            div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4)))
+            button,
+        .catalog-product-grid
+            div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4)))
+            a.catalog-brand-wa {{
+            height: 100% !important;
+            min-height: var(--catalog-action-btn-height) !important;
+            max-height: var(--catalog-action-btn-height) !important;
+            box-sizing: border-box !important;
         }}
 
         /* Pix: logo dentro do botão (container st-key-buy_pix_*) */
@@ -42,7 +76,8 @@ def inject_catalog_action_icon_css() -> None:
             font-size: 0 !important;
             color: transparent !important;
             line-height: 0 !important;
-            min-height: 2.15rem !important;
+            min-height: var(--catalog-action-btn-height) !important;
+            max-height: var(--catalog-action-btn-height) !important;
             width: 100% !important;
             position: relative !important;
             display: flex !important;
@@ -93,7 +128,9 @@ def inject_catalog_action_icon_css() -> None:
             align-items: center !important;
             justify-content: center !important;
             width: 100% !important;
-            min-height: 2.15rem !important;
+            min-height: var(--catalog-action-btn-height) !important;
+            max-height: var(--catalog-action-btn-height) !important;
+            height: 100% !important;
             padding: 0.28rem 0.15rem !important;
             border: 1px solid rgba(49, 51, 63, 0.2) !important;
             border-radius: 0.5rem !important;
@@ -119,11 +156,7 @@ def inject_catalog_action_icon_css() -> None:
         @media (max-width: 480px) {{
             :root {{
                 --catalog-action-icon: 0.95rem;
-            }}
-            [class*="st-key-buy_pix_off_"] button,
-            [class*="st-key-buy_pix_"]:not([class*="buy_pix_off"]) button,
-            a.catalog-brand-wa {{
-                min-height: 1.85rem !important;
+                --catalog-action-btn-height: 1.85rem;
             }}
         }}
         </style>

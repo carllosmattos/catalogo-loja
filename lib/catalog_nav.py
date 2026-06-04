@@ -51,7 +51,7 @@ def _inject_catalog_nav_css() -> None:
             right: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             z-index: 10010 !important;
             background: var(--catalog-header-bg, var(--accent)) !important;
             border-bottom: 1px solid color-mix(in srgb, var(--primary) 22%, transparent) !important;
@@ -59,7 +59,7 @@ def _inject_catalog_nav_css() -> None:
             min-height: var(--catalog-header-height, 3.25rem) !important;
             max-height: var(--catalog-header-height, 3.25rem) !important;
             display: grid !important;
-            grid-template-columns: auto minmax(0, 1fr) auto !important;
+            grid-template-columns: 2.5rem minmax(0, 1fr) auto !important;
             align-items: center !important;
             padding: 0 0.5rem !important;
             box-sizing: border-box !important;
@@ -83,8 +83,11 @@ def _inject_catalog_nav_css() -> None:
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
             overflow: visible !important;
-            justify-content: flex-start !important;
+            justify-content: center !important;
             flex-shrink: 0 !important;
+            min-width: 2.5rem !important;
+            width: 2.5rem !important;
+            max-width: 2.5rem !important;
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:nth-child(2) {
@@ -96,6 +99,23 @@ def _inject_catalog_nav_css() -> None:
             overflow: visible !important;
             justify-content: flex-end !important;
             flex-shrink: 0 !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"] .stElementContainer,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"] [data-testid="stMarkdownContainer"] {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child .stElementContainer,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child div.stButton {
+            width: 2.5rem !important;
+            min-width: 2.5rem !important;
+            max-width: 2.5rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] > div,
@@ -112,8 +132,8 @@ def _inject_catalog_nav_css() -> None:
             justify-content: flex-start !important;
             align-items: center !important;
             min-height: 0 !important;
-            line-height: 1.1 !important;
-            transform: translateY(-1px);
+            line-height: 1 !important;
+            transform: translateY(-2px);
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
@@ -131,7 +151,7 @@ def _inject_catalog_nav_css() -> None:
             align-items: center !important;
             line-height: 0 !important;
             max-width: 3rem !important;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
@@ -145,10 +165,12 @@ def _inject_catalog_nav_css() -> None:
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
-            width: 2.35rem !important;
-            min-width: 2.35rem !important;
-            height: 2.35rem !important;
-            min-height: 2.35rem !important;
+            width: 2.4rem !important;
+            min-width: 2.4rem !important;
+            max-width: 2.4rem !important;
+            height: 2.4rem !important;
+            min-height: 2.4rem !important;
+            max-height: 2.4rem !important;
             font-size: 1.05rem !important;
             padding: 0 !important;
             border-radius: 8px !important;
@@ -179,13 +201,29 @@ def _inject_catalog_nav_css() -> None:
                 padding-left: max(0.4rem, env(safe-area-inset-left)) !important;
                 padding-right: max(0.4rem, env(safe-area-inset-right)) !important;
                 gap: 0.3rem !important;
+                grid-template-columns: 2.35rem minmax(0, 1fr) auto !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
+                min-width: 2.35rem !important;
+                width: 2.35rem !important;
+                max-width: 2.35rem !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child .stElementContainer,
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child div.stButton {
+                width: 2.35rem !important;
+                min-width: 2.35rem !important;
+                max-width: 2.35rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
-                width: 2.25rem !important;
-                min-width: 2.25rem !important;
-                height: 2.25rem !important;
-                min-height: 2.25rem !important;
+                width: 2.2rem !important;
+                min-width: 2.2rem !important;
+                max-width: 2.2rem !important;
+                height: 2.2rem !important;
+                min-height: 2.2rem !important;
+                max-height: 2.2rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
