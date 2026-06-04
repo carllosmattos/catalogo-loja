@@ -50,7 +50,8 @@ def _inject_catalog_nav_css() -> None:
             left: 0 !important;
             right: 0 !important;
             width: 100% !important;
-            max-width: 100vw !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
             z-index: 10010 !important;
             background: var(--catalog-header-bg, var(--accent)) !important;
             border-bottom: 1px solid color-mix(in srgb, var(--primary) 22%, transparent) !important;
@@ -70,6 +71,21 @@ def _inject_catalog_nav_css() -> None:
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] {
             background: var(--catalog-header-bg, var(--accent)) !important;
+            min-width: 0 !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title-wrap {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
+            display: block !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            max-width: 100% !important;
         }
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
@@ -100,6 +116,51 @@ def _inject_catalog_nav_css() -> None:
         @media (max-width: 768px) {
             section[data-testid="stSidebar"] {
                 display: none !important;
+            }
+
+            .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"],
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) {
+                padding: 0 0.35rem !important;
+                gap: 0.2rem !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
+                flex: 0 0 auto !important;
+                width: auto !important;
+                max-width: 2.75rem !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:nth-child(2) {
+                flex: 1 1 0 !important;
+                min-width: 0 !important;
+                overflow: hidden !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
+                flex: 0 0 auto !important;
+                width: auto !important;
+                max-width: 3.5rem !important;
+                overflow: hidden !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
+                min-width: 0 !important;
+                padding: 0.15rem 0.35rem !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child img {
+                max-height: 34px !important;
+                max-width: 100% !important;
+                object-fit: contain !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child [data-testid="stImage"] {
+                width: auto !important;
+                max-width: 3.25rem !important;
+            }
+
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
+                font-size: 0.82rem !important;
             }
         }
 
@@ -206,7 +267,7 @@ def render_catalog_nav(
         '<div class="catalog-fixed-header-anchor"></div>',
         unsafe_allow_html=True,
     )
-    bar_menu, bar_title, bar_logo = st.columns([1, 5, 1], gap="small")
+    bar_menu, bar_title, bar_logo = st.columns([0.65, 5, 0.85], gap="small")
     with bar_menu:
         if st.button("☰", key="catalog_menu_toggle", help="Abrir menu"):
             _catalog_mobile_menu(
@@ -224,7 +285,7 @@ def render_catalog_nav(
     with bar_logo:
         logo_path = header_logo_path()
         if logo_path:
-            st.image(str(logo_path), width=44)
+            st.image(str(logo_path), width=40)
 
     return st.session_state.catalog_view
 
