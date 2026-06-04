@@ -66,13 +66,9 @@ def inject_theme(
             visibility: visible !important;
             pointer-events: auto !important;
             position: fixed !important;
-            top: 3.65rem !important;
+            top: 0.45rem !important;
             left: 0.45rem !important;
             z-index: 10003 !important;
-        }
-
-        .block-container {
-            padding-top: 4.35rem !important;
         }
         """
         catalog_sidebar_css = """
@@ -123,7 +119,7 @@ def inject_theme(
         {catalog_sidebar_css}
 
         .block-container {{
-            padding-top: 4.35rem;
+            padding-top: 0.35rem;
             padding-bottom: 1.25rem;
             max-width: 720px;
         }}
@@ -707,12 +703,6 @@ def inject_theme(
             margin-top: 0.75rem;
             font-family: Georgia, "Times New Roman", serif;
             letter-spacing: 0.02em;
-        }}
-
-        .catalog-section-title,
-        .catalog-topbar-title {{
-            font-family: Georgia, "Times New Roman", serif;
-            color: var(--primary);
         }}
 
         .product-card {{
