@@ -139,7 +139,7 @@ def _inject_catalog_nav_css() -> None:
             margin: 0 !important;
             font-size: 1.05rem !important;
             line-height: 1 !important;
-            border-radius: 8px !important;
+            border-radius: 0 !important;
             background: #fff !important;
             color: var(--primary) !important;
             border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent) !important;
