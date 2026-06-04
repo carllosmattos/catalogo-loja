@@ -8,7 +8,11 @@ import streamlit as st
 from lib.branding import DEFAULT_SETTINGS as DEFAULT_COLORS, STREAMLIT_BRANDING_CSS
 
 
-def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
+def inject_theme(
+    settings: dict | None = None,
+    hide_sidebar: bool = False,
+    catalog_app: bool = False,
+):
     primary = (settings or {}).get("primary_color", DEFAULT_COLORS["primary_color"])
     secondary = (settings or {}).get(
         "secondary_color", DEFAULT_COLORS["secondary_color"]
@@ -16,7 +20,17 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
     accent = (settings or {}).get("accent_color", DEFAULT_COLORS["accent_color"])
 
     sidebar_css = ""
-    if hide_sidebar:
+    if catalog_app:
+        sidebar_css = """
+        [data-testid="collapsedControl"] { display: none !important; }
+        [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+        [data-testid="stHeader"] { display: none !important; }
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stDecoration"] { display: none !important; }
+        #MainMenu { visibility: hidden !important; }
+        footer { visibility: hidden !important; }
+        """
+    elif hide_sidebar:
         sidebar_css = """
         [data-testid="stSidebar"] { display: none !important; }
         [data-testid="collapsedControl"] { display: none !important; }
@@ -61,22 +75,7 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
         }}
 
         .catalog-menu-drawer {{
-            background: #fff;
-            border: 1px solid #f0e0ea;
-            border-radius: 10px;
-            padding: 0.35rem 0.45rem 0.45rem;
-            margin: 0 0 0.5rem;
-            box-shadow: 0 4px 16px rgba(199, 21, 133, 0.08);
-        }}
-
-        .catalog-menu-drawer button {{
-            margin-bottom: 0.25rem !important;
-            font-size: 0.82rem !important;
-            min-height: 2rem !important;
-        }}
-
-        .catalog-menu-drawer button:last-child {{
-            margin-bottom: 0 !important;
+            display: none !important;
         }}
 
         /* Grade de produtos: 3 colunas web/tablet, 2 colunas mobile */
@@ -194,27 +193,59 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             white-space: nowrap !important;
         }}
 
+        /* Ações do produto — 🛒 💠 💬 na mesma linha */
+        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) {{
+            gap: 0.28rem !important;
+            margin: 0.28rem 0 0 !important;
+        }}
+
+        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) > div[data-testid="column"] {{
+            flex: 1 1 0% !important;
+            min-width: 0 !important;
+            padding: 0 0.06rem !important;
+        }}
+
+        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
+        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
+            min-height: 2.15rem !important;
+            font-size: 1.05rem !important;
+            padding: 0.28rem 0.15rem !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }}
+
+        @media (max-width: 480px) {{
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
+                min-height: 1.85rem !important;
+                font-size: 0.95rem !important;
+                padding: 0.22rem 0.1rem !important;
+            }}
+        }}
+
         /* Adicionar + Comprar lado a lado no mobile (dentro do card) */
         @media (max-width: 768px) {{
-            [data-testid="column"] div[data-testid="stHorizontalBlock"],
-            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] {{
+            [data-testid="column"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))),
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) {{
                 flex-direction: row !important;
                 flex-wrap: nowrap !important;
                 gap: 0.25rem !important;
             }}
 
-            [data-testid="column"] div[data-testid="stHorizontalBlock"] > div,
-            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] > div {{
+            [data-testid="column"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) > div,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) > div {{
                 flex: 1 1 0% !important;
                 min-width: 0 !important;
                 width: auto !important;
                 max-width: none !important;
             }}
 
-            [data-testid="column"] div[data-testid="stHorizontalBlock"] button,
-            [data-testid="column"] div[data-testid="stHorizontalBlock"] a,
-            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] button,
-            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"] a {{
+            [data-testid="column"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) button,
+            [data-testid="column"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) a,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) button,
+            [data-testid="stColumn"] div[data-testid="stHorizontalBlock"]:not(:has(> div[data-testid="column"]:nth-child(3))) a {{
                 font-size: 0.65rem !important;
                 min-height: 1.75rem !important;
                 padding: 0.22rem 0.1rem !important;

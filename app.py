@@ -54,7 +54,7 @@ from lib.whatsapp import build_cart_message, build_order_message, build_whatsapp
 
 CATALOG_PAGE_SIZE = 20
 
-configure_page("Catálogo", sidebar_state="collapsed")
+configure_page("Catálogo", sidebar_state="expanded")
 
 try:
     settings = merge_brand_settings(fetch_store_settings())
@@ -63,7 +63,7 @@ except Exception as e:
     st.info("Tente novamente em alguns instantes.")
     st.stop()
 
-inject_theme(settings, hide_sidebar=True)
+inject_theme(settings, catalog_app=True)
 
 store_name = settings["store_name"]
 whatsapp_number = settings.get("whatsapp_number", "")
@@ -442,10 +442,10 @@ else:
             elif not profit.gift_stock_ok:
                 st.warning("Brinde indisponível no momento.")
             else:
-                act_add, act_buy = st.columns(2, gap="small")
+                act_add, act_pix, act_wa = st.columns(3, gap="small")
                 with act_add:
                     if st.button(
-                        "Adicionar",
+                        "🛒",
                         key=f"add_{pid}_{selected_size}",
                         use_container_width=True,
                         help="Adicionar ao carrinho",
@@ -456,16 +456,17 @@ else:
                             st.rerun()
                         else:
                             st.error("Estoque insuficiente.")
-                with act_buy:
+                with act_pix:
                     pay_ready = payments_enabled() and customer_profile_complete(
                         catalog_customer
                     )
                     if pay_ready:
                         if st.button(
-                            "Pagar PIX",
+                            "💠",
                             use_container_width=True,
                             type="primary",
                             key=f"buy_pix_{pid}_{selected_size}",
+                            help="Pagar com PIX",
                         ):
                             try:
                                 line = _line_from_product(
@@ -481,21 +482,24 @@ else:
                                 st.error(str(e))
                     elif payments_enabled():
                         st.button(
-                            "Pagar PIX",
+                            "💠",
                             disabled=True,
                             use_container_width=True,
                             key=f"buy_pix_off_{pid}_{selected_size}",
+                            help="Complete seu cadastro para pagar com PIX",
                         )
+                with act_wa:
                     if whatsapp_number:
                         message = build_order_message(
                             product, profit, store_name, catalog_customer, size=selected_size
                         )
                         wa_url = build_whatsapp_url(whatsapp_number, message)
                         st.link_button(
-                            "WhatsApp",
+                            "💬",
                             wa_url,
                             use_container_width=True,
                             key=f"buy_{pid}_{selected_size}",
+                            help="Comprar pelo WhatsApp",
                         )
 
     render_product_grid(page_products, _render_product_cell)
