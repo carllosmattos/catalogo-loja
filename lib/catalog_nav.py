@@ -34,127 +34,58 @@ def _inject_catalog_nav_css() -> None:
     st.markdown(
         """
         <style>
-        .catalog-fixed-header-anchor {
-            display: block;
-            height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: visible !important;
-        }
-
-        /* :has() — Streamlit insere wrappers entre âncora e colunas */
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"],
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) {
+        /* Barra fixa — título e logo em HTML (grid estável); botão ☰ sobrepõe via .st-key-catalog_menu_toggle */
+        .catalog-header-bar {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             right: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            overflow: visible !important;
-            z-index: 10010 !important;
-            background: var(--catalog-header-bg, var(--accent)) !important;
-            border-bottom: 1px solid color-mix(in srgb, var(--primary) 22%, transparent) !important;
             height: var(--catalog-header-height, 3.25rem) !important;
             min-height: var(--catalog-header-height, 3.25rem) !important;
             max-height: var(--catalog-header-height, 3.25rem) !important;
             display: grid !important;
-            grid-template-columns: 2.5rem minmax(0, 1fr) auto !important;
+            grid-template-columns: 2.55rem minmax(0, 1fr) auto !important;
             align-items: center !important;
+            gap: 0.35rem !important;
             padding: 0 0.5rem !important;
             box-sizing: border-box !important;
-            margin: 0 !important;
-            gap: 0.35rem !important;
-            transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] {
+            z-index: 10010 !important;
             background: var(--catalog-header-bg, var(--accent)) !important;
-            min-width: 0 !important;
-            width: auto !important;
-            max-width: 100% !important;
-            flex: unset !important;
-            display: flex !important;
-            align-items: center !important;
-            height: 100% !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--primary) 22%, transparent) !important;
+            margin: 0 !important;
+            pointer-events: none !important;
         }
 
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
-            overflow: visible !important;
-            justify-content: center !important;
-            flex-shrink: 0 !important;
-            min-width: 2.5rem !important;
-            width: 2.5rem !important;
-            max-width: 2.5rem !important;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:nth-child(2) {
-            overflow: hidden !important;
-            justify-content: flex-start !important;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
-            overflow: visible !important;
-            justify-content: flex-end !important;
+        .catalog-header-bar__menu {
+            width: 2.55rem !important;
+            height: 2.4rem !important;
             flex-shrink: 0 !important;
         }
 
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"] .stElementContainer,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"] [data-testid="stMarkdownContainer"] {
-            margin: 0 !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child .stElementContainer,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child div.stButton {
-            width: 2.5rem !important;
-            min-width: 2.5rem !important;
-            max-width: 2.5rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] > div,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="stVerticalBlockBorderWrapper"],
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .stElementContainer {
-            min-width: 0 !important;
-            max-width: 100% !important;
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title-wrap {
-            min-width: 0 !important;
-            max-width: 100% !important;
-            overflow: hidden !important;
-            justify-content: flex-start !important;
-            align-items: center !important;
-            min-height: 0 !important;
+        .catalog-header-bar__title {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
             line-height: 1 !important;
-            transform: translateY(-2px);
-        }
-
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
-            display: block !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
-            max-width: 100% !important;
-            text-align: left !important;
+            min-width: 0 !important;
+            pointer-events: auto !important;
         }
 
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
+        .catalog-header-bar__logo {
             display: flex !important;
-            justify-content: flex-end !important;
             align-items: center !important;
+            justify-content: flex-end !important;
             line-height: 0 !important;
-            max-width: 3rem !important;
-            transform: translateY(-2px);
+            pointer-events: auto !important;
         }
 
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
+        .catalog-header-bar__logo img {
             display: block !important;
             max-height: 2.1rem !important;
             max-width: 2.75rem !important;
@@ -163,16 +94,44 @@ def _inject_catalog_nav_css() -> None:
             object-fit: contain !important;
         }
 
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
+        div.stElementContainer.st-key-catalog_menu_toggle,
+        [class*="st-key-catalog_menu_toggle"].stElementContainer,
+        div[class*="st-key-catalog_menu_toggle"] {
+            position: fixed !important;
+            top: calc((var(--catalog-header-height, 3.25rem) - 2.4rem) / 2) !important;
+            left: max(0.5rem, env(safe-area-inset-left)) !important;
             width: 2.4rem !important;
-            min-width: 2.4rem !important;
-            max-width: 2.4rem !important;
             height: 2.4rem !important;
+            min-width: 2.4rem !important;
             min-height: 2.4rem !important;
+            max-width: 2.4rem !important;
             max-height: 2.4rem !important;
-            font-size: 1.05rem !important;
+            z-index: 10012 !important;
+            margin: 0 !important;
             padding: 0 !important;
+        }
+
+        div.stElementContainer.st-key-catalog_menu_toggle div.stButton,
+        [class*="st-key-catalog_menu_toggle"] div.stButton {
+            width: 2.4rem !important;
+            height: 2.4rem !important;
+            min-width: 2.4rem !important;
+            min-height: 2.4rem !important;
+            margin: 0 !important;
+        }
+
+        div.stElementContainer.st-key-catalog_menu_toggle button,
+        [class*="st-key-catalog_menu_toggle"] button {
+            width: 2.4rem !important;
+            height: 2.4rem !important;
+            min-width: 2.4rem !important;
+            min-height: 2.4rem !important;
+            max-width: 2.4rem !important;
+            max-height: 2.4rem !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            font-size: 1.05rem !important;
+            line-height: 1 !important;
             border-radius: 8px !important;
             background: #fff !important;
             color: var(--primary) !important;
@@ -180,14 +139,7 @@ def _inject_catalog_nav_css() -> None:
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            flex-shrink: 0 !important;
-        }
-
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
-            display: flex !important;
-            justify-content: flex-end !important;
-            align-items: center !important;
+            box-sizing: border-box !important;
         }
 
         @media (max-width: 768px) {
@@ -195,48 +147,51 @@ def _inject_catalog_nav_css() -> None:
                 display: none !important;
             }
 
-            .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"],
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) {
+            .catalog-header-bar {
+                grid-template-columns: 2.45rem minmax(0, 1fr) auto !important;
                 padding: 0 0.4rem !important;
                 padding-left: max(0.4rem, env(safe-area-inset-left)) !important;
                 padding-right: max(0.4rem, env(safe-area-inset-right)) !important;
                 gap: 0.3rem !important;
-                grid-template-columns: 2.35rem minmax(0, 1fr) auto !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
-                min-width: 2.35rem !important;
-                width: 2.35rem !important;
-                max-width: 2.35rem !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child .stElementContainer,
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child div.stButton {
-                width: 2.35rem !important;
-                min-width: 2.35rem !important;
-                max-width: 2.35rem !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
-                width: 2.2rem !important;
-                min-width: 2.2rem !important;
-                max-width: 2.2rem !important;
+            .catalog-header-bar__menu {
+                width: 2.45rem !important;
                 height: 2.2rem !important;
-                min-height: 2.2rem !important;
-                max-height: 2.2rem !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
-                max-width: 2.5rem !important;
+            .catalog-header-bar__title {
+                font-size: 0.82rem !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
+            .catalog-header-bar__logo img {
                 max-height: 1.85rem !important;
                 max-width: 2.35rem !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
-                font-size: 0.82rem !important;
+            div.stElementContainer.st-key-catalog_menu_toggle,
+            [class*="st-key-catalog_menu_toggle"].stElementContainer,
+            div[class*="st-key-catalog_menu_toggle"] {
+                top: calc((var(--catalog-header-height, 3.25rem) - 2.2rem) / 2) !important;
+                left: max(0.4rem, env(safe-area-inset-left)) !important;
+                width: 2.2rem !important;
+                height: 2.2rem !important;
+                min-width: 2.2rem !important;
+                min-height: 2.2rem !important;
+                max-width: 2.2rem !important;
+                max-height: 2.2rem !important;
+            }
+
+            div.stElementContainer.st-key-catalog_menu_toggle div.stButton,
+            div.stElementContainer.st-key-catalog_menu_toggle button,
+            [class*="st-key-catalog_menu_toggle"] div.stButton,
+            [class*="st-key-catalog_menu_toggle"] button {
+                width: 2.2rem !important;
+                height: 2.2rem !important;
+                min-width: 2.2rem !important;
+                min-height: 2.2rem !important;
+                max-width: 2.2rem !important;
+                max-height: 2.2rem !important;
             }
         }
 
@@ -329,8 +284,6 @@ def render_catalog_nav(
     current = st.session_state.catalog_view
     current_label = _nav_label(current, cart_count)
 
-    _inject_catalog_nav_css()
-
     with st.sidebar:
         _render_nav_buttons(
             options,
@@ -339,34 +292,38 @@ def render_catalog_nav(
             key_prefix="catalog_nav",
         )
 
+    logo_url = resolve_logo_url(None)
+    logo_html = ""
+    if logo_url:
+        safe_logo = html.escape(logo_url, quote=True)
+        logo_html = (
+            f'<div class="catalog-header-bar__logo">'
+            f'<img src="{safe_logo}" alt="LM moda feminina" />'
+            f"</div>"
+        )
+
     st.markdown(
-        '<div class="catalog-fixed-header-anchor"></div>',
+        f'<div class="catalog-header-bar">'
+        f'<div class="catalog-header-bar__menu" aria-hidden="true"></div>'
+        f'<div class="catalog-header-bar__title">{html.escape(current_label)}</div>'
+        f"{logo_html}"
+        f"</div>",
         unsafe_allow_html=True,
     )
-    bar_menu, bar_title, bar_logo = st.columns([1, 5, 1], gap="small")
-    with bar_menu:
-        if st.button("☰", key="catalog_menu_toggle", help="Abrir menu"):
-            _catalog_mobile_menu(
-                options,
-                cart_count=cart_count,
-                current=current,
-            )
-    with bar_title:
-        st.markdown(
-            f'<div class="catalog-topbar-title-wrap">'
-            f'<span class="catalog-topbar-title">{html.escape(current_label)}</span>'
-            f"</div>",
-            unsafe_allow_html=True,
+
+    if st.button(
+        "☰",
+        key="catalog_menu_toggle",
+        help="Abrir menu",
+        use_container_width=False,
+    ):
+        _catalog_mobile_menu(
+            options,
+            cart_count=cart_count,
+            current=current,
         )
-    with bar_logo:
-        logo_url = resolve_logo_url(None)
-        if logo_url:
-            st.markdown(
-                f'<div class="catalog-header-logo">'
-                f'<img src="{html.escape(logo_url, quote=True)}" alt="LM moda feminina" />'
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+
+    _inject_catalog_nav_css()
 
     return st.session_state.catalog_view
 
