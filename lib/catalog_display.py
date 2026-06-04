@@ -49,9 +49,13 @@ def build_banner_header_html(mode: str, urls: list[str]) -> str:
     )
 
 
-def render_catalog_header(settings: dict, promotions: list[dict] | None) -> None:
+def render_catalog_header(
+    settings: dict,
+    promotions: list[dict] | None,
+    store_banners: list[dict] | None = None,
+) -> None:
     """Renderiza banner ou fallback logo + nome no topo do catálogo."""
-    banner = resolve_catalog_banner(settings, promotions)
+    banner = resolve_catalog_banner(settings, promotions, store_banners)
 
     if banner["mode"] != "legacy":
         st.markdown(build_banner_header_html(banner["mode"], banner["urls"]), unsafe_allow_html=True)
@@ -72,9 +76,13 @@ def render_catalog_header(settings: dict, promotions: list[dict] | None) -> None
     )
 
 
-def build_banner_preview_html(settings: dict, promotions: list[dict] | None) -> str:
+def build_banner_preview_html(
+    settings: dict,
+    promotions: list[dict] | None,
+    store_banners: list[dict] | None = None,
+) -> str:
     """Preview HTML para admin."""
-    banner = resolve_catalog_banner(settings, promotions)
+    banner = resolve_catalog_banner(settings, promotions, store_banners)
     if banner["mode"] == "legacy":
         return ""
     return build_banner_header_html(banner["mode"], banner["urls"])

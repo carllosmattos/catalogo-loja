@@ -23,6 +23,8 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 015 | [`migrations/015_customer_email.sql`](migrations/015_customer_email.sql) | E-mail do cliente (Mercado Pago) |
 | 016 | [`migrations/016_orders_payments.sql`](migrations/016_orders_payments.sql) | Pedidos, PIX, reembolsos |
 | 017 | [`migrations/017_repair_payment_rpcs.sql`](migrations/017_repair_payment_rpcs.sql) | Reparo se 016 parou no meio (RPC ausente) |
+| 018 | [`migrations/018_fix_create_checkout_uuid.sql`](migrations/018_fix_create_checkout_uuid.sql) | Corrige UUID no checkout |
+| 019 | [`migrations/019_store_banners.sql`](migrations/019_store_banners.sql) | Vários banners da loja + carrossel |
 
 ## Já rodou o schema antes?
 
@@ -45,6 +47,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Pagamentos PIX / pedidos → **016** + Edge Function `mercadopago-webhook`
 - Erro `create_checkout_order not found` → rode **017**
 - Erro `uuid_generate_v4 does not exist` → rode **018**
+- Vários banners com carrossel no admin → **019**
 
 ## Projeto do zero
 

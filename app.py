@@ -23,6 +23,7 @@ from lib.catalog import (
     fetch_product_gifts,
     fetch_products,
     fetch_products_page,
+    fetch_store_banners,
     fetch_store_settings,
 )
 from lib.infinite_scroll import render_back_to_top, render_infinite_scroll_trigger
@@ -85,7 +86,7 @@ elif _qp.get("view") == "Minhas compras":
 view = render_catalog_nav(nav_options, cart_count=piece_count, store_name=store_name)
 highlight_token = st.session_state.pop("highlight_order_token", None) or _qp.get("order")
 
-render_catalog_header(settings, promotions)
+render_catalog_header(settings, promotions, fetch_store_banners(active_only=True))
 render_store_social_bar()
 
 if catalog_customer and catalog_customer.get("name"):

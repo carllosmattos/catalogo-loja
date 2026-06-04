@@ -10,10 +10,18 @@ from lib.branding import (
     configure_page,
     get_logo_path,
     merge_brand_settings,
-    resolve_default_banner_url,
     resolve_logo_url,
 )
-from lib.catalog import fetch_store_settings, resize_image, update_store_settings, upload_image
+from lib.catalog import (
+    create_store_banner,
+    delete_store_banner,
+    fetch_store_banners,
+    fetch_store_settings,
+    resize_image,
+    set_store_banner_active,
+    update_store_settings,
+    upload_image,
+)
 from lib.catalog_display import build_banner_header_html, render_catalog_header
 from lib.theme import inject_theme
 from lib.utils import parse_whatsapp_number
@@ -28,49 +36,88 @@ st.title("🏪 Configurações da Loja")
 settings = merge_brand_settings(fetch_store_settings())
 inject_theme(settings)
 
-st.subheader("Banner do catálogo")
+st.subheader("Banners do catálogo")
 st.caption(
-    "O banner substitui logo e nome no topo do catálogo — a imagem já pode trazer a identidade da loja."
+    "Envie um ou mais banners. Vários **ativos** aparecem em carrossel no topo do catálogo. "
+    "Promoções com banner ativo têm prioridade sobre estes."
 )
 
-banner_preview_url = resolve_default_banner_url(settings)
-if banner_preview_url:
+store_banners = fetch_store_banners()
+if not store_banners and settings.get("default_banner_url"):
+    st.info(
+        "Execute a migração `019_store_banners.sql` no Supabase para gerenciar vários banners. "
+        "Enquanto isso, vale o banner único legado abaixo."
+    )
+    legacy_url = settings["default_banner_url"]
     st.markdown(
-        build_banner_header_html("single", [banner_preview_url]),
+        build_banner_header_html("single", [legacy_url]),
         unsafe_allow_html=True,
     )
-else:
-    st.info("Nenhum banner configurado. Envie abaixo ou use o banner padrão em `resources/banner.png`.")
 
-with st.form("banner_form"):
-    banner_file = st.file_uploader(
-        "Enviar banner padrão",
-        type=["png", "jpg", "jpeg", "webp"],
-        help="Recomendado: imagem horizontal (aprox. 2:1), até 1600px de largura.",
+active_urls = [b["image_url"] for b in store_banners if b.get("active") and b.get("image_url")]
+if active_urls:
+    mode = "carousel" if len(active_urls) >= 2 else "single"
+    st.markdown(
+        build_banner_header_html(mode, active_urls),
+        unsafe_allow_html=True,
     )
-    save_banner = st.form_submit_button("Salvar banner", use_container_width=True)
+elif store_banners:
+    st.warning("Nenhum banner ativo — ative ao menos um ou envie uma imagem.")
+else:
+    st.info("Nenhum banner cadastrado. Envie abaixo ou use `resources/banner.png` como fallback.")
 
-    if save_banner:
-        if not banner_file:
-            st.error("Selecione uma imagem para o banner.")
+with st.form("banner_upload_form"):
+    banner_files = st.file_uploader(
+        "Adicionar banner(s)",
+        type=["png", "jpg", "jpeg", "webp"],
+        accept_multiple_files=True,
+        help="Horizontal (aprox. 2:1). Selecione várias imagens de uma vez.",
+    )
+    save_banners = st.form_submit_button("Enviar banner(s)", use_container_width=True)
+    if save_banners:
+        if not banner_files:
+            st.error("Selecione ao menos uma imagem.")
         else:
             try:
-                img_bytes = resize_image(banner_file.read(), max_size=1600)
-                banner_url = upload_image(img_bytes, banner_file.name, folder="banners")
-                update_store_settings({"default_banner_url": banner_url})
-                st.success("Banner salvo!")
+                for bf in banner_files:
+                    img_bytes = resize_image(bf.read(), max_size=1600)
+                    url = upload_image(img_bytes, bf.name, folder="banners")
+                    create_store_banner(url)
+                st.success(f"{len(banner_files)} banner(s) adicionado(s)!")
                 st.rerun()
             except Exception as e:
-                st.error(f"Erro ao enviar banner: {e}")
+                st.error(f"Erro ao enviar: {e}")
 
-if settings.get("default_banner_url"):
-    if st.button("Remover banner padrão", use_container_width=True):
-        try:
-            update_store_settings({"default_banner_url": None})
-            st.success("Banner removido. O catálogo usará o arquivo local ou logo+nome.")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Erro: {e}")
+if store_banners:
+    st.markdown("**Banners cadastrados**")
+    for banner in store_banners:
+        bid = banner["id"]
+        cols = st.columns([2, 1, 1, 1])
+        with cols[0]:
+            if banner.get("image_url"):
+                st.image(banner["image_url"], use_container_width=True)
+        with cols[1]:
+            active = st.toggle(
+                "Ativo",
+                value=bool(banner.get("active")),
+                key=f"banner_active_{bid}",
+            )
+            if active != bool(banner.get("active")):
+                try:
+                    set_store_banner_active(bid, active)
+                    st.rerun()
+                except Exception as e:
+                    st.error(str(e))
+        with cols[2]:
+            st.caption(f"Ordem: {banner.get('sort_order', 0)}")
+        with cols[3]:
+            if st.button("Excluir", key=f"banner_del_{bid}", type="secondary"):
+                try:
+                    delete_store_banner(bid)
+                    st.success("Banner excluído.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(str(e))
 
 st.markdown("---")
 
@@ -146,4 +193,4 @@ st.markdown("---")
 st.subheader("Preview mobile")
 preview_settings = merge_brand_settings(fetch_store_settings())
 inject_theme(preview_settings)
-render_catalog_header(preview_settings, [])
+render_catalog_header(preview_settings, [], fetch_store_banners(active_only=True))

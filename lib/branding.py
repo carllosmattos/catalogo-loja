@@ -147,13 +147,32 @@ def resolve_promo_banners(promotions: list[dict] | None) -> list[str]:
     return urls
 
 
+def resolve_store_banner_urls(
+    settings: dict | None,
+    store_banners: list[dict] | None = None,
+) -> list[str]:
+    """URLs de banners da loja ativos (ordem sort_order)."""
+    urls: list[str] = []
+    for row in store_banners or []:
+        if not row.get("active"):
+            continue
+        url = (row.get("image_url") or "").strip()
+        if url:
+            urls.append(url)
+    if urls:
+        return urls
+    legacy = resolve_default_banner_url(settings)
+    return [legacy] if legacy else []
+
+
 def resolve_catalog_banner(
     settings: dict | None,
     promotions: list[dict] | None,
+    store_banners: list[dict] | None = None,
 ) -> dict:
     """
     Define qual banner exibir no catálogo.
-    Prioridade: promoções > banner padrão > banner local > legacy (logo+nome).
+    Prioridade: promoções > banners da loja > legacy (logo+nome).
     """
     promo_urls = resolve_promo_banners(promotions)
     if len(promo_urls) >= 2:
@@ -161,9 +180,10 @@ def resolve_catalog_banner(
     if len(promo_urls) == 1:
         return {"mode": "single", "urls": promo_urls}
 
-    default_url = resolve_default_banner_url(settings)
-    if default_url:
-        mode = "default" if settings and settings.get("default_banner_url") else "local"
-        return {"mode": mode, "urls": [default_url]}
+    store_urls = resolve_store_banner_urls(settings, store_banners)
+    if len(store_urls) >= 2:
+        return {"mode": "carousel", "urls": store_urls}
+    if len(store_urls) == 1:
+        return {"mode": "single", "urls": store_urls}
 
     return {"mode": "legacy", "urls": []}

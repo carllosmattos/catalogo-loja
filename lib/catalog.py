@@ -317,6 +317,45 @@ def set_promotion_active(promo_id: str, active: bool):
     client.table("promotions").update({"active": active}).eq("id", promo_id).execute()
 
 
+def fetch_store_banners(*, active_only: bool = False) -> list[dict[str, Any]]:
+    """Lista banners da loja (ativos no catálogo; todos no admin)."""
+    try:
+        client = get_supabase() if active_only else get_authenticated_client()
+        query = (
+            client.table("store_banners")
+            .select("*")
+            .order("sort_order")
+            .order("created_at")
+        )
+        if active_only:
+            query = query.eq("active", True)
+        return query.execute().data or []
+    except Exception:
+        return []
+
+
+def create_store_banner(image_url: str) -> dict[str, Any]:
+    client = get_authenticated_client()
+    existing = fetch_store_banners()
+    data = {
+        "image_url": image_url,
+        "active": True,
+        "sort_order": len(existing),
+    }
+    result = client.table("store_banners").insert(data).execute()
+    return result.data[0] if result.data else {}
+
+
+def set_store_banner_active(banner_id: str, active: bool) -> None:
+    client = get_authenticated_client()
+    client.table("store_banners").update({"active": active}).eq("id", banner_id).execute()
+
+
+def delete_store_banner(banner_id: str) -> None:
+    client = get_authenticated_client()
+    client.table("store_banners").delete().eq("id", banner_id).execute()
+
+
 def upload_image(file_bytes: bytes, filename: str, folder: str = "products") -> str:
     """Upload para Supabase Storage e retorna URL pública."""
     client = get_authenticated_client()

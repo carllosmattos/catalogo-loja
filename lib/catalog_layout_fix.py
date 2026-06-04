@@ -61,6 +61,11 @@ def inject_catalog_layout_fix() -> None:
                     el.style.setProperty("box-sizing", "border-box", "important");
                     if (el.tagName === "BUTTON") {
                         el.style.setProperty("border-radius", "0", "important");
+                        el.style.setProperty(
+                            "padding",
+                            cssVar("--catalog-header-menu-padding", "0.45rem"),
+                            "important"
+                        );
                     }
                 });
             }

@@ -39,16 +39,39 @@ def render_infinite_scroll_trigger(*, next_limit: int, filter_key: str) -> None:
 
 
 def render_back_to_top() -> None:
-    """Botão flutuante para rolar ao topo da página."""
-    st.markdown(
+    """Botão flutuante para rolar ao topo (no documento pai do Streamlit)."""
+    components.html(
         """
-        <button type="button" class="catalog-back-top" aria-label="Voltar ao topo"
-            onclick="(function(){
-                var root = document.querySelector('[data-testid=\\'stAppViewContainer\\']')
-                    || document.querySelector('.main')
-                    || document.documentElement;
-                root.scrollTo({top: 0, behavior: 'smooth'});
-            })()">↑</button>
+        <script>
+        (function () {
+            const doc = window.parent.document;
+            if (!doc) return;
+
+            function scrollRoot() {
+                return (
+                    doc.querySelector('[data-testid="stAppViewContainer"]') ||
+                    doc.querySelector("section.main") ||
+                    doc.documentElement
+                );
+            }
+
+            let btn = doc.getElementById("catalog-back-top-btn");
+            if (!btn) {
+                btn = doc.createElement("button");
+                btn.id = "catalog-back-top-btn";
+                btn.type = "button";
+                btn.className = "catalog-back-top";
+                btn.setAttribute("aria-label", "Voltar ao topo");
+                btn.textContent = "↑";
+                btn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scrollRoot().scrollTo({ top: 0, behavior: "smooth" });
+                });
+                doc.body.appendChild(btn);
+            }
+        })();
+        </script>
         """,
-        unsafe_allow_html=True,
+        height=0,
     )

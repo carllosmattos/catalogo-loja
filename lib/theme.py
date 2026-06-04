@@ -41,7 +41,8 @@ def inject_theme(
         :root {
             --st-header-height: 0px !important;
             --catalog-header-height: 4rem;
-            --catalog-header-menu-size: 2.6rem;
+            --catalog-header-menu-size: 3rem;
+            --catalog-header-menu-padding: 0.45rem;
             --catalog-header-padding-x: 1rem;
             --catalog-header-bg: var(--accent);
         }
@@ -599,6 +600,7 @@ def inject_theme(
             line-height: 1;
             cursor: pointer;
             box-shadow: 0 4px 14px rgba(199, 21, 133, 0.35);
+            pointer-events: auto !important;
         }}
 
         @media (max-width: 768px) {{
