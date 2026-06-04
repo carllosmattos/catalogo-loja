@@ -6,7 +6,7 @@ import html
 
 import streamlit as st
 
-from lib.branding import header_logo_path
+from lib.branding import resolve_logo_url
 
 NAV_ICONS = {
     "Catálogo": "🏷️",
@@ -58,12 +58,13 @@ def _inject_catalog_nav_css() -> None:
             height: var(--catalog-header-height, 3.25rem) !important;
             min-height: var(--catalog-header-height, 3.25rem) !important;
             max-height: var(--catalog-header-height, 3.25rem) !important;
+            display: grid !important;
+            grid-template-columns: auto minmax(0, 1fr) auto !important;
             align-items: center !important;
-            padding: 0 0.65rem !important;
+            padding: 0 0.5rem !important;
             box-sizing: border-box !important;
             margin: 0 !important;
             gap: 0.35rem !important;
-            flex-wrap: nowrap !important;
             transform: translateZ(0);
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
@@ -72,12 +73,24 @@ def _inject_catalog_nav_css() -> None:
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] {
             background: var(--catalog-header-bg, var(--accent)) !important;
             min-width: 0 !important;
+            width: auto !important;
+            max-width: 100% !important;
+            flex: unset !important;
+            overflow: hidden !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] > div,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="stVerticalBlockBorderWrapper"],
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .stElementContainer {
+            min-width: 0 !important;
+            max-width: 100% !important;
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title-wrap {
             min-width: 0 !important;
             max-width: 100% !important;
             overflow: hidden !important;
+            justify-content: flex-start !important;
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
@@ -86,6 +99,24 @@ def _inject_catalog_nav_css() -> None:
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
             max-width: 100% !important;
+            text-align: left !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
+            display: flex !important;
+            justify-content: flex-end !important;
+            align-items: center !important;
+            line-height: 0 !important;
+            max-width: 3rem !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
+            display: block !important;
+            max-height: 2.1rem !important;
+            max-width: 2.75rem !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
         }
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
@@ -100,17 +131,10 @@ def _inject_catalog_nav_css() -> None:
         }
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child {
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
             display: flex !important;
             justify-content: flex-end !important;
             align-items: center !important;
-        }
-
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child img,
-        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child img {
-            max-height: 42px !important;
-            width: auto !important;
-            object-fit: contain !important;
         }
 
         @media (max-width: 768px) {
@@ -120,43 +144,26 @@ def _inject_catalog_nav_css() -> None:
 
             .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"],
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) {
-                padding: 0 0.35rem !important;
-                gap: 0.2rem !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
-                flex: 0 0 auto !important;
-                width: auto !important;
-                max-width: 2.75rem !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:nth-child(2) {
-                flex: 1 1 0 !important;
-                min-width: 0 !important;
-                overflow: hidden !important;
-            }
-
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
-                flex: 0 0 auto !important;
-                width: auto !important;
-                max-width: 3.5rem !important;
-                overflow: hidden !important;
+                padding: 0 0.4rem !important;
+                padding-left: max(0.4rem, env(safe-area-inset-left)) !important;
+                padding-right: max(0.4rem, env(safe-area-inset-right)) !important;
+                gap: 0.25rem !important;
+                grid-template-columns: 2.35rem minmax(0, 1fr) 2.5rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
                 min-width: 0 !important;
-                padding: 0.15rem 0.35rem !important;
+                width: 100% !important;
+                padding: 0.12rem 0.25rem !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child img {
-                max-height: 34px !important;
-                max-width: 100% !important;
-                object-fit: contain !important;
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
+                max-width: 2.5rem !important;
             }
 
-            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child [data-testid="stImage"] {
-                width: auto !important;
-                max-width: 3.25rem !important;
+            div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
+                max-height: 1.85rem !important;
+                max-width: 2.35rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
@@ -267,7 +274,7 @@ def render_catalog_nav(
         '<div class="catalog-fixed-header-anchor"></div>',
         unsafe_allow_html=True,
     )
-    bar_menu, bar_title, bar_logo = st.columns([0.65, 5, 0.85], gap="small")
+    bar_menu, bar_title, bar_logo = st.columns([1, 5, 1], gap="small")
     with bar_menu:
         if st.button("☰", key="catalog_menu_toggle", help="Abrir menu"):
             _catalog_mobile_menu(
@@ -283,9 +290,14 @@ def render_catalog_nav(
             unsafe_allow_html=True,
         )
     with bar_logo:
-        logo_path = header_logo_path()
-        if logo_path:
-            st.image(str(logo_path), width=40)
+        logo_url = resolve_logo_url(None)
+        if logo_url:
+            st.markdown(
+                f'<div class="catalog-header-logo">'
+                f'<img src="{html.escape(logo_url, quote=True)}" alt="LM moda feminina" />'
+                f"</div>",
+                unsafe_allow_html=True,
+            )
 
     return st.session_state.catalog_view
 
