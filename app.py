@@ -4,6 +4,7 @@ import hashlib
 
 import streamlit as st
 
+from lib.brand_icons import inject_catalog_action_icon_css
 from lib.branding import configure_page, merge_brand_settings
 from lib.cart import (
     add_to_cart,
@@ -64,6 +65,7 @@ except Exception as e:
     st.stop()
 
 inject_theme(settings, catalog_app=True)
+inject_catalog_action_icon_css()
 
 store_name = settings["store_name"]
 whatsapp_number = settings.get("whatsapp_number", "")
@@ -462,7 +464,7 @@ else:
                     )
                     if pay_ready:
                         if st.button(
-                            "💠",
+                            "\u200b",
                             use_container_width=True,
                             type="primary",
                             key=f"buy_pix_{pid}_{selected_size}",
@@ -482,7 +484,7 @@ else:
                                 st.error(str(e))
                     elif payments_enabled():
                         st.button(
-                            "💠",
+                            "\u200b",
                             disabled=True,
                             use_container_width=True,
                             key=f"buy_pix_off_{pid}_{selected_size}",
@@ -495,7 +497,7 @@ else:
                         )
                         wa_url = build_whatsapp_url(whatsapp_number, message)
                         st.link_button(
-                            "💬",
+                            "\u200b",
                             wa_url,
                             use_container_width=True,
                             key=f"buy_{pid}_{selected_size}",

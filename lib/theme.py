@@ -20,15 +20,32 @@ def inject_theme(
     accent = (settings or {}).get("accent_color", DEFAULT_COLORS["accent_color"])
 
     sidebar_css = ""
+    catalog_sidebar_css = ""
     if catalog_app:
         sidebar_css = """
-        [data-testid="collapsedControl"] { display: none !important; }
-        [data-testid="stSidebarCollapsedControl"] { display: none !important; }
-        [data-testid="stHeader"] { display: none !important; }
         [data-testid="stToolbar"] { display: none !important; }
         [data-testid="stDecoration"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
+        """
+        catalog_sidebar_css = """
+        section[data-testid="stSidebar"] {
+            background: #fff;
+            border-right: 1px solid #f0e0ea;
+        }
+
+        section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+            padding-top: 0.75rem;
+        }
+
+        section[data-testid="stSidebar"] div.stButton > button {
+            justify-content: flex-start !important;
+            text-align: left !important;
+            font-size: 0.88rem !important;
+            min-height: 2.35rem !important;
+            border-radius: 8px !important;
+            margin-bottom: 0.2rem !important;
+        }
         """
     elif hide_sidebar:
         sidebar_css = """
@@ -55,6 +72,8 @@ def inject_theme(
         {STREAMLIT_BRANDING_CSS}
 
         {sidebar_css}
+
+        {catalog_sidebar_css}
 
         .block-container {{
             padding-top: 1rem;
@@ -150,27 +169,12 @@ def inject_theme(
             margin: 0 0 0.35rem;
         }}
 
-        .catalog-topbar {{
-            margin-bottom: 0.35rem;
-        }}
-
-        .catalog-topbar [data-testid="column"]:first-child button {{
-            min-height: 2rem !important;
-            font-size: 1.05rem !important;
-            padding: 0.2rem 0.5rem !important;
-            border-radius: 8px !important;
-        }}
-
-        .catalog-topbar-title-wrap {{
-            display: flex;
-            align-items: center;
-            min-height: 2rem;
-        }}
-
-        .catalog-topbar-title {{
+        .catalog-section-title {{
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--primary);
+            text-align: center;
+            margin: 0 0 0.5rem;
         }}
 
         /* Tamanhos Único/P/M/G — linha com 4 colunas */
@@ -193,7 +197,7 @@ def inject_theme(
             white-space: nowrap !important;
         }}
 
-        /* Ações do produto — 🛒 💠 💬 na mesma linha */
+        /* Ações do produto — carrinho, Pix e WhatsApp na mesma linha */
         .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) {{
             gap: 0.28rem !important;
             margin: 0.28rem 0 0 !important;
