@@ -252,6 +252,8 @@ def inject_theme(
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title-wrap {{
             background: transparent !important;
+            min-height: 0 !important;
+            align-items: center !important;
         }}
 
         /* Tamanhos Único/P/M/G — linha com 4 colunas */

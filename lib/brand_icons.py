@@ -43,21 +43,41 @@ def inject_catalog_action_icon_css() -> None:
             color: transparent !important;
             line-height: 0 !important;
             min-height: 2.15rem !important;
-            display: inline-flex !important;
+            width: 100% !important;
+            position: relative !important;
+            display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            padding: 0.28rem 0.15rem !important;
+        }}
+
+        [class*="st-key-buy_pix_off_"] button > div,
+        [class*="st-key-buy_pix_"]:not([class*="buy_pix_off"]) button > div,
+        [class*="st-key-buy_pix_off_"] button p,
+        [class*="st-key-buy_pix_"]:not([class*="buy_pix_off"]) button p {{
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }}
 
         [class*="st-key-buy_pix_off_"] button::before,
         [class*="st-key-buy_pix_"]:not([class*="buy_pix_off"]) button::before {{
             content: "" !important;
             display: block !important;
+            position: absolute !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
             width: var(--catalog-pix-icon) !important;
             height: var(--catalog-pix-icon) !important;
             background-repeat: no-repeat !important;
             background-position: center center !important;
             background-size: contain !important;
             flex-shrink: 0 !important;
+            margin: 0 !important;
         }}
 
         [class*="st-key-buy_pix_off_"] button::before {{

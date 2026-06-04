@@ -76,7 +76,26 @@ def _inject_catalog_nav_css() -> None:
             width: auto !important;
             max-width: 100% !important;
             flex: unset !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:first-child {
+            overflow: visible !important;
+            justify-content: flex-start !important;
+            flex-shrink: 0 !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:nth-child(2) {
             overflow: hidden !important;
+            justify-content: flex-start !important;
+        }
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"]:last-child {
+            overflow: visible !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] > div,
@@ -91,6 +110,10 @@ def _inject_catalog_nav_css() -> None:
             max-width: 100% !important;
             overflow: hidden !important;
             justify-content: flex-start !important;
+            align-items: center !important;
+            min-height: 0 !important;
+            line-height: 1.1 !important;
+            transform: translateY(-1px);
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title {
@@ -108,6 +131,7 @@ def _inject_catalog_nav_css() -> None:
             align-items: center !important;
             line-height: 0 !important;
             max-width: 3rem !important;
+            transform: translateY(-1px);
         }
 
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo img {
@@ -121,13 +145,20 @@ def _inject_catalog_nav_css() -> None:
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
         div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
-            min-height: 2rem !important;
+            width: 2.35rem !important;
+            min-width: 2.35rem !important;
+            height: 2.35rem !important;
+            min-height: 2.35rem !important;
             font-size: 1.05rem !important;
-            padding: 0.2rem 0.5rem !important;
+            padding: 0 !important;
             border-radius: 8px !important;
             background: #fff !important;
             color: var(--primary) !important;
             border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
         }
 
         .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child,
@@ -147,14 +178,14 @@ def _inject_catalog_nav_css() -> None:
                 padding: 0 0.4rem !important;
                 padding-left: max(0.4rem, env(safe-area-inset-left)) !important;
                 padding-right: max(0.4rem, env(safe-area-inset-right)) !important;
-                gap: 0.25rem !important;
-                grid-template-columns: 2.35rem minmax(0, 1fr) 2.5rem !important;
+                gap: 0.3rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
-                min-width: 0 !important;
-                width: 100% !important;
-                padding: 0.12rem 0.25rem !important;
+                width: 2.25rem !important;
+                min-width: 2.25rem !important;
+                height: 2.25rem !important;
+                min-height: 2.25rem !important;
             }
 
             div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-header-logo {
