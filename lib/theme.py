@@ -177,6 +177,18 @@ def inject_theme(
             margin: 0 0 0.5rem;
         }}
 
+        .catalog-topbar-title-wrap {{
+            display: flex;
+            align-items: center;
+            min-height: 2rem;
+        }}
+
+        .catalog-topbar-title {{
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+        }}
+
         /* Tamanhos Único/P/M/G — linha com 4 colunas */
         div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)):not(:has(> div[data-testid="column"]:nth-child(5))) {{
             gap: 0.25rem !important;
