@@ -40,7 +40,9 @@ def inject_theme(
 
         :root {
             --st-header-height: 0px !important;
-            --catalog-header-height: 3.25rem;
+            --catalog-header-height: 3.75rem;
+            --catalog-header-menu-size: 2.5rem;
+            --catalog-header-padding-x: 0.85rem;
             --catalog-header-bg: var(--accent);
         }
 
@@ -215,6 +217,14 @@ def inject_theme(
                 padding: 0.18rem 0.08rem !important;
             }}
 
+            /* Não reduzir altura dos botões carrinho / Pix / WhatsApp */
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) div.stButton > button,
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a.catalog-brand-wa {{
+                min-height: var(--catalog-action-btn-height, 2.25rem) !important;
+                height: var(--catalog-action-btn-height, 2.25rem) !important;
+                max-height: var(--catalog-action-btn-height, 2.25rem) !important;
+            }}
+
             .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) button {{
                 font-size: 0.55rem !important;
                 min-height: 1.45rem !important;
@@ -289,23 +299,24 @@ def inject_theme(
         }}
 
         .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
-        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
-            min-height: var(--catalog-action-btn-height, 2.15rem) !important;
-            max-height: var(--catalog-action-btn-height, 2.15rem) !important;
+        .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a.catalog-brand-wa {{
+            height: var(--catalog-action-btn-height, 2.25rem) !important;
+            min-height: var(--catalog-action-btn-height, 2.25rem) !important;
+            max-height: var(--catalog-action-btn-height, 2.25rem) !important;
             font-size: 1.05rem !important;
-            padding: 0.28rem 0.15rem !important;
+            padding: 0 !important;
             line-height: 1 !important;
-            display: inline-flex !important;
+            display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             box-sizing: border-box !important;
+            border-radius: 0.5rem !important;
         }}
 
         @media (max-width: 480px) {{
             .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) button,
-            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a {{
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(3)):not(:has(> div[data-testid="column"]:nth-child(4))) a.catalog-brand-wa {{
                 font-size: 0.95rem !important;
-                padding: 0.22rem 0.1rem !important;
             }}
         }}
 

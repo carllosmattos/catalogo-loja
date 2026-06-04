@@ -42,14 +42,14 @@ def _inject_catalog_nav_css() -> None:
             right: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            height: var(--catalog-header-height, 3.25rem) !important;
-            min-height: var(--catalog-header-height, 3.25rem) !important;
-            max-height: var(--catalog-header-height, 3.25rem) !important;
+            height: var(--catalog-header-height, 3.75rem) !important;
+            min-height: var(--catalog-header-height, 3.75rem) !important;
+            max-height: var(--catalog-header-height, 3.75rem) !important;
             display: grid !important;
-            grid-template-columns: 2.55rem minmax(0, 1fr) auto !important;
+            grid-template-columns: var(--catalog-header-menu-size, 2.5rem) minmax(0, 1fr) auto !important;
             align-items: center !important;
-            gap: 0.35rem !important;
-            padding: 0 0.5rem !important;
+            gap: 0.4rem !important;
+            padding: 0 max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-right)) 0 max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-left)) !important;
             box-sizing: border-box !important;
             z-index: 10010 !important;
             background: var(--catalog-header-bg, var(--accent)) !important;
@@ -59,14 +59,14 @@ def _inject_catalog_nav_css() -> None:
         }
 
         .catalog-header-bar__menu {
-            width: 2.55rem !important;
-            height: 2.4rem !important;
+            width: var(--catalog-header-menu-size, 2.5rem) !important;
+            height: var(--catalog-header-menu-size, 2.5rem) !important;
             flex-shrink: 0 !important;
         }
 
         .catalog-header-bar__title {
             font-family: Georgia, "Times New Roman", serif;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--primary);
             line-height: 1 !important;
@@ -75,6 +75,9 @@ def _inject_catalog_nav_css() -> None:
             white-space: nowrap !important;
             min-width: 0 !important;
             pointer-events: auto !important;
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
         }
 
         .catalog-header-bar__logo {
@@ -83,12 +86,13 @@ def _inject_catalog_nav_css() -> None:
             justify-content: flex-end !important;
             line-height: 0 !important;
             pointer-events: auto !important;
+            height: 100% !important;
         }
 
         .catalog-header-bar__logo img {
             display: block !important;
-            max-height: 2.1rem !important;
-            max-width: 2.75rem !important;
+            max-height: 2.5rem !important;
+            max-width: 3.25rem !important;
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
@@ -98,14 +102,14 @@ def _inject_catalog_nav_css() -> None:
         [class*="st-key-catalog_menu_toggle"].stElementContainer,
         div[class*="st-key-catalog_menu_toggle"] {
             position: fixed !important;
-            top: calc((var(--catalog-header-height, 3.25rem) - 2.4rem) / 2) !important;
-            left: max(0.5rem, env(safe-area-inset-left)) !important;
-            width: 2.4rem !important;
-            height: 2.4rem !important;
-            min-width: 2.4rem !important;
-            min-height: 2.4rem !important;
-            max-width: 2.4rem !important;
-            max-height: 2.4rem !important;
+            top: calc((var(--catalog-header-height, 3.75rem) - var(--catalog-header-menu-size, 2.5rem)) / 2) !important;
+            left: max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-left)) !important;
+            width: var(--catalog-header-menu-size, 2.5rem) !important;
+            height: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
+            max-width: var(--catalog-header-menu-size, 2.5rem) !important;
+            max-height: var(--catalog-header-menu-size, 2.5rem) !important;
             z-index: 10012 !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -113,21 +117,21 @@ def _inject_catalog_nav_css() -> None:
 
         div.stElementContainer.st-key-catalog_menu_toggle div.stButton,
         [class*="st-key-catalog_menu_toggle"] div.stButton {
-            width: 2.4rem !important;
-            height: 2.4rem !important;
-            min-width: 2.4rem !important;
-            min-height: 2.4rem !important;
+            width: var(--catalog-header-menu-size, 2.5rem) !important;
+            height: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
             margin: 0 !important;
         }
 
         div.stElementContainer.st-key-catalog_menu_toggle button,
         [class*="st-key-catalog_menu_toggle"] button {
-            width: 2.4rem !important;
-            height: 2.4rem !important;
-            min-width: 2.4rem !important;
-            min-height: 2.4rem !important;
-            max-width: 2.4rem !important;
-            max-height: 2.4rem !important;
+            width: var(--catalog-header-menu-size, 2.5rem) !important;
+            height: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
+            max-width: var(--catalog-header-menu-size, 2.5rem) !important;
+            max-height: var(--catalog-header-menu-size, 2.5rem) !important;
             padding: 0 !important;
             margin: 0 !important;
             font-size: 1.05rem !important;
@@ -147,51 +151,23 @@ def _inject_catalog_nav_css() -> None:
                 display: none !important;
             }
 
-            .catalog-header-bar {
-                grid-template-columns: 2.45rem minmax(0, 1fr) auto !important;
-                padding: 0 0.4rem !important;
-                padding-left: max(0.4rem, env(safe-area-inset-left)) !important;
-                padding-right: max(0.4rem, env(safe-area-inset-right)) !important;
-                gap: 0.3rem !important;
+            :root {
+                --catalog-header-height: 3.5rem;
+                --catalog-header-menu-size: 2.35rem;
+                --catalog-header-padding-x: 0.7rem;
             }
 
-            .catalog-header-bar__menu {
-                width: 2.45rem !important;
-                height: 2.2rem !important;
+            .catalog-header-bar {
+                gap: 0.35rem !important;
             }
 
             .catalog-header-bar__title {
-                font-size: 0.82rem !important;
+                font-size: 0.88rem !important;
             }
 
             .catalog-header-bar__logo img {
-                max-height: 1.85rem !important;
-                max-width: 2.35rem !important;
-            }
-
-            div.stElementContainer.st-key-catalog_menu_toggle,
-            [class*="st-key-catalog_menu_toggle"].stElementContainer,
-            div[class*="st-key-catalog_menu_toggle"] {
-                top: calc((var(--catalog-header-height, 3.25rem) - 2.2rem) / 2) !important;
-                left: max(0.4rem, env(safe-area-inset-left)) !important;
-                width: 2.2rem !important;
-                height: 2.2rem !important;
-                min-width: 2.2rem !important;
-                min-height: 2.2rem !important;
-                max-width: 2.2rem !important;
-                max-height: 2.2rem !important;
-            }
-
-            div.stElementContainer.st-key-catalog_menu_toggle div.stButton,
-            div.stElementContainer.st-key-catalog_menu_toggle button,
-            [class*="st-key-catalog_menu_toggle"] div.stButton,
-            [class*="st-key-catalog_menu_toggle"] button {
-                width: 2.2rem !important;
-                height: 2.2rem !important;
-                min-width: 2.2rem !important;
-                min-height: 2.2rem !important;
-                max-width: 2.2rem !important;
-                max-height: 2.2rem !important;
+                max-height: 2.15rem !important;
+                max-width: 2.85rem !important;
             }
         }
 
