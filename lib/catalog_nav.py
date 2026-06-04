@@ -6,6 +6,8 @@ import html
 
 import streamlit as st
 
+from lib.branding import header_logo_path
+
 NAV_ICONS = {
     "Catálogo": "🏷️",
     "Carrinho": "🛒",
@@ -32,30 +34,48 @@ def _inject_catalog_nav_css() -> None:
     st.markdown(
         """
         <style>
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] {
-            display: flex !important;
-            visibility: visible !important;
-            z-index: 10002 !important;
+        .catalog-fixed-header-anchor {
+            display: block;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
         }
 
-        .catalog-topbar {
-            position: relative;
-            z-index: 10001;
-            margin-bottom: 0.35rem;
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 10005 !important;
+            background: #fff !important;
+            border-bottom: 1px solid #f0e0ea !important;
+            height: var(--catalog-header-height, 3.25rem) !important;
+            min-height: var(--catalog-header-height, 3.25rem) !important;
+            align-items: center !important;
+            padding: 0 0.65rem !important;
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            gap: 0.35rem !important;
         }
 
-        .catalog-topbar [data-testid="column"]:first-child button {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button {
             min-height: 2rem !important;
             font-size: 1.05rem !important;
             padding: 0.2rem 0.5rem !important;
             border-radius: 8px !important;
         }
 
-        @media (min-width: 769px) {
-            .catalog-topbar [data-testid="column"]:first-child {
-                display: none !important;
-            }
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child {
+            display: flex !important;
+            justify-content: flex-end !important;
+            align-items: center !important;
+        }
+
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child img {
+            max-height: 42px !important;
+            width: auto !important;
+            object-fit: contain !important;
         }
 
         @media (max-width: 768px) {
@@ -163,8 +183,11 @@ def render_catalog_nav(
             key_prefix="catalog_nav",
         )
 
-    st.markdown('<div class="catalog-topbar">', unsafe_allow_html=True)
-    bar_menu, bar_title = st.columns([1, 5], gap="small")
+    st.markdown(
+        '<div class="catalog-fixed-header-anchor"></div>',
+        unsafe_allow_html=True,
+    )
+    bar_menu, bar_title, bar_logo = st.columns([1, 5, 1], gap="small")
     with bar_menu:
         if st.button("☰", key="catalog_menu_toggle", help="Abrir menu"):
             _catalog_mobile_menu(
@@ -179,7 +202,10 @@ def render_catalog_nav(
             f"</div>",
             unsafe_allow_html=True,
         )
-    st.markdown("</div>", unsafe_allow_html=True)
+    with bar_logo:
+        logo_path = header_logo_path()
+        if logo_path:
+            st.image(str(logo_path), width=44)
 
     return st.session_state.catalog_view
 

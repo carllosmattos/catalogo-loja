@@ -67,6 +67,11 @@ def get_logo_path() -> Path | None:
     return None
 
 
+def header_logo_path() -> Path | None:
+    """Logo para o header fixo do catálogo (lm_logo.png ou lm.jpeg)."""
+    return get_logo_path()
+
+
 def configure_page(
     title: str,
     layout: str = "centered",

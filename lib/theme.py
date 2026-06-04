@@ -40,6 +40,11 @@ def inject_theme(
 
         :root {
             --st-header-height: 0px !important;
+            --catalog-header-height: 3.25rem;
+        }
+
+        .block-container {
+            padding-top: var(--catalog-header-height) !important;
         }
 
         [data-testid="stAppViewContainer"],
@@ -66,9 +71,16 @@ def inject_theme(
             visibility: visible !important;
             pointer-events: auto !important;
             position: fixed !important;
-            top: 0.45rem !important;
+            top: var(--catalog-header-height, 3.25rem) !important;
             left: 0.45rem !important;
-            z-index: 10003 !important;
+            z-index: 10004 !important;
+        }
+
+        @media (max-width: 768px) {
+            [data-testid="collapsedControl"],
+            [data-testid="stSidebarCollapsedControl"] {
+                display: none !important;
+            }
         }
         """
         catalog_sidebar_css = """
@@ -227,6 +239,7 @@ def inject_theme(
         }}
 
         .catalog-topbar-title {{
+            font-family: Georgia, "Times New Roman", serif;
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--primary);
