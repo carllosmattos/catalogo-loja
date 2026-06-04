@@ -59,6 +59,9 @@ def inject_catalog_layout_fix() -> None:
                     el.style.setProperty("align-items", "center", "important");
                     el.style.setProperty("justify-content", "center", "important");
                     el.style.setProperty("box-sizing", "border-box", "important");
+                    if (el.tagName === "BUTTON") {
+                        el.style.setProperty("border-radius", "0", "important");
+                    }
                 });
             }
 
