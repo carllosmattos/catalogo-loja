@@ -48,6 +48,102 @@ def inject_theme(settings: dict | None = None, hide_sidebar: bool = False):
             max-width: 720px;
         }}
 
+        @media (min-width: 769px) {{
+            .block-container {{
+                max-width: 1080px;
+            }}
+        }}
+
+        @media (min-width: 481px) and (max-width: 768px) {{
+            .block-container {{
+                max-width: 900px;
+            }}
+        }}
+
+        .catalog-menu-drawer {{
+            background: #fff;
+            border: 1px solid #f0e0ea;
+            border-radius: 10px;
+            padding: 0.35rem 0.45rem 0.45rem;
+            margin: 0 0 0.5rem;
+            box-shadow: 0 4px 16px rgba(199, 21, 133, 0.08);
+        }}
+
+        .catalog-menu-drawer button {{
+            margin-bottom: 0.25rem !important;
+            font-size: 0.82rem !important;
+            min-height: 2rem !important;
+        }}
+
+        .catalog-menu-drawer button:last-child {{
+            margin-bottom: 0 !important;
+        }}
+
+        /* Grade de produtos: 3 colunas web/tablet, 2 colunas mobile */
+        .catalog-product-grid [data-testid="stHorizontalBlock"] {{
+            flex-wrap: wrap !important;
+            gap: 0.45rem !important;
+            margin-bottom: 0.35rem !important;
+        }}
+
+        .catalog-product-grid [data-testid="stHorizontalBlock"] > [data-testid="column"] {{
+            min-width: 0 !important;
+        }}
+
+        @media (min-width: 481px) {{
+            .catalog-product-grid [data-testid="stHorizontalBlock"] > [data-testid="column"] {{
+                flex: 0 0 calc(33.333% - 0.35rem) !important;
+                max-width: calc(33.333% - 0.35rem) !important;
+            }}
+        }}
+
+        @media (max-width: 480px) {{
+            .catalog-product-grid [data-testid="stHorizontalBlock"] > [data-testid="column"] {{
+                flex: 0 0 calc(50% - 0.25rem) !important;
+                max-width: calc(50% - 0.25rem) !important;
+            }}
+
+            .catalog-product-grid .product-card-compact .product-photo-empty {{
+                min-height: 88px;
+            }}
+
+            .catalog-product-grid .product-card-compact .product-info {{
+                padding: 0.45rem 0.5rem 0.55rem;
+            }}
+
+            .catalog-product-grid .product-card-compact .product-name {{
+                font-size: 0.78rem;
+                -webkit-line-clamp: 2;
+            }}
+
+            .catalog-product-grid .product-card-compact .price-current {{
+                font-size: 0.88rem;
+            }}
+
+            .catalog-product-grid .product-card-compact .price-block {{
+                margin-top: 0.35rem;
+                padding: 0.3rem 0.4rem;
+            }}
+
+            .catalog-product-grid .product-card-compact .badge {{
+                padding: 0.2rem 0.35rem;
+                font-size: 0.58rem;
+            }}
+
+            .catalog-product-grid div[data-testid="column"] div.stButton > button,
+            .catalog-product-grid div[data-testid="column"] a[data-testid="stLinkButton"] {{
+                font-size: 0.58rem !important;
+                min-height: 1.55rem !important;
+                padding: 0.18rem 0.08rem !important;
+            }}
+
+            .catalog-product-grid div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) button {{
+                font-size: 0.55rem !important;
+                min-height: 1.45rem !important;
+                padding: 0.2rem 0.05rem !important;
+            }}
+        }}
+
         .catalog-greeting {{
             font-size: 0.78rem;
             color: #666;

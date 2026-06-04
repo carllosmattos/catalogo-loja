@@ -20,15 +20,26 @@ def _nav_label(option: str, cart_count: int) -> str:
     return option
 
 
+def _select_view(opt: str, cart_count: int) -> None:
+    st.session_state.catalog_menu_open = False
+    if st.session_state.catalog_view != opt:
+        st.session_state.catalog_view = opt
+        if opt == "Catálogo":
+            st.session_state.catalog_limit = 20
+    st.rerun()
+
+
 def render_catalog_nav(
     options: list[str],
     *,
     cart_count: int = 0,
     store_name: str = "",
 ) -> str:
-    """Barra superior com ☰ (popover) + título da seção ativa."""
+    """Barra superior com ☰ + título da seção ativa; menu recolhe ao escolher."""
     if "catalog_view" not in st.session_state:
         st.session_state.catalog_view = options[0]
+    if "catalog_menu_open" not in st.session_state:
+        st.session_state.catalog_menu_open = False
 
     current = st.session_state.catalog_view
     current_label = _nav_label(current, cart_count)
@@ -36,25 +47,9 @@ def render_catalog_nav(
     st.markdown('<div class="catalog-topbar">', unsafe_allow_html=True)
     bar_menu, bar_title = st.columns([1, 5], gap="small")
     with bar_menu:
-        with st.popover("☰", help="Abrir menu"):
-            if store_name:
-                st.caption(store_name)
-            st.markdown("**Menu**")
-            for opt in options:
-                label = _nav_label(opt, cart_count)
-                icon = NAV_ICONS.get(opt, "•")
-                active = current == opt
-                if st.button(
-                    f"{icon}  {label}",
-                    key=f"catalog_nav_{opt}",
-                    use_container_width=True,
-                    type="primary" if active else "secondary",
-                ):
-                    if st.session_state.catalog_view != opt:
-                        st.session_state.catalog_view = opt
-                        if opt == "Catálogo":
-                            st.session_state.catalog_limit = 20
-                        st.rerun()
+        if st.button("☰", key="catalog_menu_toggle", help="Menu"):
+            st.session_state.catalog_menu_open = not st.session_state.catalog_menu_open
+            st.rerun()
     with bar_title:
         st.markdown(
             f'<div class="catalog-topbar-title-wrap">'
@@ -63,6 +58,21 @@ def render_catalog_nav(
             unsafe_allow_html=True,
         )
     st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.session_state.catalog_menu_open:
+        st.markdown('<div class="catalog-menu-drawer">', unsafe_allow_html=True)
+        for opt in options:
+            label = _nav_label(opt, cart_count)
+            icon = NAV_ICONS.get(opt, "•")
+            active = current == opt
+            if st.button(
+                f"{icon}  {label}",
+                key=f"catalog_nav_{opt}",
+                use_container_width=True,
+                type="primary" if active else "secondary",
+            ):
+                _select_view(opt, cart_count)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     return st.session_state.catalog_view
 

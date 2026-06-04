@@ -26,6 +26,7 @@ from lib.catalog import (
 )
 from lib.infinite_scroll import render_back_to_top, render_infinite_scroll_trigger
 from lib.catalog_display import build_product_card_html, render_catalog_header
+from lib.catalog_grid import render_product_grid
 from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
 from lib.customer_session import (
@@ -72,11 +73,11 @@ promotions = fetch_active_promotions()
 piece_count = cart_piece_count()
 nav_options = ["Catálogo", "Carrinho", "Minhas compras", "Minha conta"]
 _qp = st.query_params
-if _qp.get("view"):
-    st.session_state.catalog_view = _qp.get("view")
 if _qp.get("order") and payments_enabled():
     st.session_state.catalog_view = "Minhas compras"
     st.session_state.highlight_order_token = _qp.get("order")
+elif _qp.get("view") == "Minhas compras":
+    st.session_state.catalog_view = "Minhas compras"
 
 view = render_catalog_nav(nav_options, cart_count=piece_count, store_name=store_name)
 highlight_token = st.session_state.pop("highlight_order_token", None) or _qp.get("order")
@@ -143,6 +144,7 @@ elif view == "Minha conta":
                         prof_email,
                     )
                     set_catalog_customer(updated)
+                    st.session_state.catalog_view = "Catálogo"
                     st.success("Cadastro atualizado!")
                     st.rerun()
                 except Exception as e:
@@ -180,11 +182,13 @@ elif view == "Minha conta":
                             new_email,
                         )
                         set_catalog_customer(created)
+                        st.session_state.catalog_view = "Catálogo"
                         st.success("Cadastro criado!")
                         st.rerun()
                 except Exception as e:
                     st.error(str(e))
-        if st.button("Voltar", use_container_width=True):
+        if st.button("Voltar ao catálogo", use_container_width=True):
+            st.session_state.catalog_view = "Catálogo"
             logout_catalog_customer()
             st.rerun()
 
@@ -200,6 +204,7 @@ elif view == "Minha conta":
             found = lookup_by_phone(login_phone)
             if found:
                 set_catalog_customer(found)
+                st.session_state.catalog_view = "Catálogo"
                 st.rerun()
             elif len("".join(c for c in login_phone if c.isdigit())) >= 10:
                 digits = "".join(c for c in login_phone if c.isdigit())
@@ -291,7 +296,12 @@ elif view == "Carrinho":
                     except Exception as e:
                         st.error(str(e))
             elif payments_enabled():
-                st.info("Complete **Minha conta** (e-mail e CPF) para pagar com PIX.")
+                st.button(
+                    "Pagar com PIX",
+                    disabled=True,
+                    use_container_width=True,
+                    key="cart_pay_pix_off",
+                )
             else:
                 st.caption("PIX em configuração.")
         with col_wa:
@@ -470,7 +480,12 @@ else:
                             except Exception as e:
                                 st.error(str(e))
                     elif payments_enabled():
-                        st.caption("Cadastre e-mail em Minha conta.")
+                        st.button(
+                            "Pagar PIX",
+                            disabled=True,
+                            use_container_width=True,
+                            key=f"buy_pix_off_{pid}_{selected_size}",
+                        )
                     if whatsapp_number:
                         message = build_order_message(
                             product, profit, store_name, catalog_customer, size=selected_size
@@ -483,11 +498,7 @@ else:
                             key=f"buy_{pid}_{selected_size}",
                         )
 
-    for row_start in range(0, len(page_products), 2):
-        col_left, col_right = st.columns(2, gap="small")
-        _render_product_cell(page_products[row_start], col_left)
-        if row_start + 1 < len(page_products):
-            _render_product_cell(page_products[row_start + 1], col_right)
+    render_product_grid(page_products, _render_product_cell)
 
     if shown < total_products:
         next_limit = min(st.session_state.catalog_limit + CATALOG_PAGE_SIZE, total_products)
