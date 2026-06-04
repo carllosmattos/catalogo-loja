@@ -23,25 +23,36 @@ def inject_theme(
     catalog_sidebar_css = ""
     if catalog_app:
         sidebar_css = """
+        /* Remove header Streamlit — sem faixa vazia nem corte no topo */
         [data-testid="stHeader"],
-        header.stAppHeader {
+        header.stAppHeader,
+        .stApp > header {
+            display: none !important;
+            visibility: hidden !important;
             height: 0 !important;
             min-height: 0 !important;
             max-height: 0 !important;
             padding: 0 !important;
             margin: 0 !important;
-            overflow: visible !important;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
         }
 
-        [data-testid="stHeader"] > div {
-            height: 0 !important;
-            min-height: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            overflow: visible !important;
+        :root {
+            --st-header-height: 0px !important;
+        }
+
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewBlockContainer"] {
+            top: 0 !important;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
+        [data-testid="stMain"],
+        section.main {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
         }
 
         [data-testid="stToolbar"] { display: none !important; }
@@ -51,6 +62,9 @@ def inject_theme(
 
         [data-testid="collapsedControl"],
         [data-testid="stSidebarCollapsedControl"] {
+            display: flex !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
             position: fixed !important;
             top: 0.45rem !important;
             left: 0.45rem !important;
@@ -105,7 +119,7 @@ def inject_theme(
         {catalog_sidebar_css}
 
         .block-container {{
-            padding-top: 0.5rem;
+            padding-top: 0.35rem;
             padding-bottom: 1.25rem;
             max-width: 720px;
         }}
