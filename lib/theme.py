@@ -41,10 +41,15 @@ def inject_theme(
         :root {
             --st-header-height: 0px !important;
             --catalog-header-height: 3.25rem;
+            --catalog-header-bg: var(--accent);
         }
 
         .block-container {
             padding-top: var(--catalog-header-height) !important;
+        }
+
+        [data-testid="stAppViewContainer"] {
+            scroll-padding-top: var(--catalog-header-height) !important;
         }
 
         [data-testid="stAppViewContainer"],
@@ -243,6 +248,10 @@ def inject_theme(
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--primary);
+        }}
+
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) .catalog-topbar-title-wrap {{
+            background: transparent !important;
         }}
 
         /* Tamanhos Único/P/M/G — linha com 4 colunas */

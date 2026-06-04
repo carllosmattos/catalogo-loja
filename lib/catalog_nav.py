@@ -42,37 +42,56 @@ def _inject_catalog_nav_css() -> None:
             overflow: visible !important;
         }
 
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] {
+        /* :has() — Streamlit insere wrappers entre âncora e colunas */
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"],
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             right: 0 !important;
-            z-index: 10005 !important;
-            background: #fff !important;
-            border-bottom: 1px solid #f0e0ea !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            z-index: 10010 !important;
+            background: var(--catalog-header-bg, var(--accent)) !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--primary) 22%, transparent) !important;
             height: var(--catalog-header-height, 3.25rem) !important;
             min-height: var(--catalog-header-height, 3.25rem) !important;
+            max-height: var(--catalog-header-height, 3.25rem) !important;
             align-items: center !important;
             padding: 0 0.65rem !important;
             box-sizing: border-box !important;
             margin: 0 !important;
             gap: 0.35rem !important;
+            flex-wrap: nowrap !important;
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
         }
 
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button {
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) > [data-testid="column"] {
+            background: var(--catalog-header-bg, var(--accent)) !important;
+        }
+
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:first-child button,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:first-child button {
             min-height: 2rem !important;
             font-size: 1.05rem !important;
             padding: 0.2rem 0.5rem !important;
             border-radius: 8px !important;
+            background: #fff !important;
+            color: var(--primary) !important;
+            border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent) !important;
         }
 
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child {
             display: flex !important;
             justify-content: flex-end !important;
             align-items: center !important;
         }
 
-        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child img {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] [data-testid="column"]:last-child img,
+        div[data-testid="stHorizontalBlock"]:has(.st-key-catalog_menu_toggle) [data-testid="column"]:last-child img {
             max-height: 42px !important;
             width: auto !important;
             object-fit: contain !important;
