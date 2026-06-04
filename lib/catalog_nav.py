@@ -6,6 +6,8 @@ import html
 
 import streamlit as st
 
+from lib.branding import BRAND_FONT, brand_display_lines
+
 NAV_ICONS = {
     "Catálogo": "🏷️",
     "Carrinho": "🛒",
@@ -28,57 +30,132 @@ def _select_view(opt: str) -> None:
     st.rerun()
 
 
+def _brand_header_html(line1: str, line2: str) -> str:
+    return (
+        f'<div class="catalog-fixed-brand">'
+        f'<div class="catalog-brand-lm">{html.escape(line1)}</div>'
+        f'<div class="catalog-brand-tagline">{html.escape(line2)}</div>'
+        f"</div>"
+    )
+
+
 def _inject_catalog_nav_css() -> None:
     st.markdown(
-        """
+        f"""
         <style>
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"] {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] {{
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            z-index: 10005 !important;
+            background: #fff !important;
+            border-bottom: 1px solid #f0e0ea !important;
+            box-shadow: 0 2px 12px rgba(199, 21, 133, 0.08) !important;
+            padding: 0.42rem 0.65rem 0.48rem !important;
+            margin: 0 !important;
+            align-items: center !important;
+        }}
+
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {{
             display: flex !important;
-            visibility: visible !important;
-            z-index: 10002 !important;
-        }
+            align-items: center !important;
+            justify-content: center !important;
+        }}
 
-        .catalog-topbar {
-            position: relative;
-            z-index: 10001;
-            margin-bottom: 0.35rem;
-        }
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {{
+            justify-content: flex-start !important;
+        }}
 
-        .catalog-topbar [data-testid="column"]:first-child button {
-            min-height: 2rem !important;
-            font-size: 1.05rem !important;
-            padding: 0.2rem 0.5rem !important;
-            border-radius: 8px !important;
-        }
-
-        @media (min-width: 769px) {
-            .catalog-topbar [data-testid="column"]:first-child {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            section[data-testid="stSidebar"] {
-                display: none !important;
-            }
-        }
-
-        /* Menu mobile — drawer branco full-height, sem fundo cinza */
-        div[data-testid="stDialogBackdrop"] {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] button {{
+            font-family: {BRAND_FONT} !important;
+            font-weight: 700 !important;
+            font-size: 1.35rem !important;
+            color: var(--primary) !important;
             background: transparent !important;
-        }
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
+            min-height: 2.45rem !important;
+            min-width: 2.45rem !important;
+            padding: 0 0.35rem !important;
+            line-height: 1 !important;
+        }}
 
-        div[data-testid="stDialog"] {
+        .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] button:hover {{
+            color: var(--primary) !important;
+            background: #fff5f8 !important;
+            border-color: #f0e0ea !important;
+        }}
+
+        .catalog-fixed-brand {{
+            text-align: center;
+            font-family: {BRAND_FONT};
+            line-height: 1.05;
+            width: 100%;
+        }}
+
+        .catalog-brand-lm {{
+            font-size: 1.22rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.05em;
+        }}
+
+        .catalog-brand-tagline {{
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--secondary);
+            letter-spacing: 0.12em;
+            text-transform: lowercase;
+            margin-top: 0.06rem;
+        }}
+
+        .catalog-fixed-spacer {{
+            width: 2.45rem;
+            min-height: 1px;
+        }}
+
+        @media (min-width: 769px) {{
+            .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child,
+            .catalog-fixed-header-anchor + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {{
+                display: none !important;
+            }}
+        }}
+
+        @media (max-width: 768px) {{
+            [data-testid="collapsedControl"],
+            [data-testid="stSidebarCollapsedControl"] {{
+                display: none !important;
+            }}
+
+            section[data-testid="stSidebar"] {{
+                display: none !important;
+            }}
+        }}
+
+        @media (min-width: 769px) {{
+            [data-testid="collapsedControl"],
+            [data-testid="stSidebarCollapsedControl"] {{
+                top: 3.65rem !important;
+            }}
+        }}
+
+        div[data-testid="stDialogBackdrop"] {{
+            background: transparent !important;
+        }}
+
+        div[data-testid="stDialog"] {{
             padding: 0 !important;
             background: transparent !important;
             align-items: flex-start !important;
             justify-content: flex-start !important;
-        }
+        }}
 
         div[data-testid="stDialog"] > div,
         div[data-testid="stDialog"] [data-testid="stModalContainer"],
-        div[data-testid="stDialog"] [role="dialog"] {
+        div[data-testid="stDialog"] [role="dialog"] {{
             position: fixed !important;
             left: 0 !important;
             top: 0 !important;
@@ -93,12 +170,12 @@ def _inject_catalog_nav_css() -> None:
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1) !important;
             padding: 1rem 0.85rem !important;
             box-sizing: border-box !important;
-        }
+        }}
 
         div[data-testid="stDialog"] button[aria-label="Close"],
-        div[data-testid="stDialog"] [data-testid="stModalCloseButton"] {
+        div[data-testid="stDialog"] [data-testid="stModalCloseButton"] {{
             color: #666 !important;
-        }
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -146,12 +223,12 @@ def render_catalog_nav(
     cart_count: int = 0,
     store_name: str = "",
 ) -> str:
-    """Sidebar no desktop; dialog lateral no mobile via botão ☰."""
+    """Header fixo LM + menu lateral."""
     if "catalog_view" not in st.session_state:
         st.session_state.catalog_view = options[0]
 
     current = st.session_state.catalog_view
-    current_label = _nav_label(current, cart_count)
+    line1, line2 = brand_display_lines(store_name)
 
     _inject_catalog_nav_css()
 
@@ -163,23 +240,19 @@ def render_catalog_nav(
             key_prefix="catalog_nav",
         )
 
-    st.markdown('<div class="catalog-topbar">', unsafe_allow_html=True)
-    bar_menu, bar_title = st.columns([1, 5], gap="small")
-    with bar_menu:
-        if st.button("☰", key="catalog_menu_toggle", help="Abrir menu"):
+    st.markdown('<div class="catalog-fixed-header-anchor"></div>', unsafe_allow_html=True)
+    menu_col, brand_col, spacer_col = st.columns([1, 4, 1], gap="small")
+    with menu_col:
+        if st.button("M", key="catalog_menu_toggle", help="Menu"):
             _catalog_mobile_menu(
                 options,
                 cart_count=cart_count,
                 current=current,
             )
-    with bar_title:
-        st.markdown(
-            f'<div class="catalog-topbar-title-wrap">'
-            f'<span class="catalog-topbar-title">{html.escape(current_label)}</span>'
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
+    with brand_col:
+        st.markdown(_brand_header_html(line1, line2), unsafe_allow_html=True)
+    with spacer_col:
+        st.markdown('<div class="catalog-fixed-spacer"></div>', unsafe_allow_html=True)
 
     return st.session_state.catalog_view
 

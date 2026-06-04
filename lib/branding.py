@@ -17,6 +17,7 @@ STORE_NAME = "LM moda feminina"
 PRIMARY = "#C71585"
 SECONDARY = "#D4AF37"
 ACCENT = "#F8C8DC"
+BRAND_FONT = 'Georgia, "Times New Roman", serif'
 
 DEFAULT_SETTINGS = {
     "store_name": STORE_NAME,
@@ -113,6 +114,18 @@ def merge_brand_settings(settings: dict | None) -> dict:
         if key.endswith("_color") and not (settings or {}).get(key):
             merged[key] = default
     return merged
+
+
+def brand_display_lines(store_name: str | None = None) -> tuple[str, str]:
+    """Separa nome da loja em linha principal (LM) e tagline."""
+    name = (store_name or STORE_NAME).strip()
+    if name.upper().startswith("LM"):
+        rest = name[2:].strip()
+        return "LM", (rest or "moda feminina").lower()
+    parts = name.split(None, 1)
+    if len(parts) == 2:
+        return parts[0], parts[1].lower()
+    return name, ""
 
 
 def banner_default_base64() -> str:
