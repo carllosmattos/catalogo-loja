@@ -23,10 +23,39 @@ def inject_theme(
     catalog_sidebar_css = ""
     if catalog_app:
         sidebar_css = """
+        [data-testid="stHeader"],
+        header.stAppHeader {
+            height: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        [data-testid="stHeader"] > div {
+            height: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+        }
+
         [data-testid="stToolbar"] { display: none !important; }
         [data-testid="stDecoration"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
+
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"] {
+            position: fixed !important;
+            top: 0.45rem !important;
+            left: 0.45rem !important;
+            z-index: 10003 !important;
+        }
         """
         catalog_sidebar_css = """
         section[data-testid="stSidebar"] {
@@ -76,7 +105,7 @@ def inject_theme(
         {catalog_sidebar_css}
 
         .block-container {{
-            padding-top: 1rem;
+            padding-top: 0.5rem;
             padding-bottom: 1.25rem;
             max-width: 720px;
         }}
