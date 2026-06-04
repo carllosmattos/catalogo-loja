@@ -641,7 +641,7 @@ def inject_theme(
         .store-banner {{
             width: 100%;
             height: auto;
-            max-height: 130px;
+            max-height: 200px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
@@ -651,9 +651,9 @@ def inject_theme(
         .store-banner-carousel {{
             position: relative;
             width: 100%;
-            min-height: 90px;
-            max-height: 130px;
-            aspect-ratio: 2.2 / 1;
+            min-height: 120px;
+            max-height: 200px;
+            aspect-ratio: 2 / 1;
         }}
 
         .store-banner-track {{
