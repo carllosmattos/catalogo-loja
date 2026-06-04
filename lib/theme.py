@@ -40,9 +40,9 @@ def inject_theme(
 
         :root {
             --st-header-height: 0px !important;
-            --catalog-header-height: 3.75rem;
-            --catalog-header-menu-size: 2.5rem;
-            --catalog-header-padding-x: 0.85rem;
+            --catalog-header-height: 4rem;
+            --catalog-header-menu-size: 2.6rem;
+            --catalog-header-padding-x: 1rem;
             --catalog-header-bg: var(--accent);
         }
 
@@ -138,7 +138,7 @@ def inject_theme(
         {catalog_sidebar_css}
 
         .block-container {{
-            padding-top: 0.35rem;
+            padding-top: {("var(--catalog-header-height) !important" if catalog_app else "0.35rem")};
             padding-bottom: 1.25rem;
             max-width: 720px;
         }}

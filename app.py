@@ -28,6 +28,7 @@ from lib.catalog import (
 from lib.infinite_scroll import render_back_to_top, render_infinite_scroll_trigger
 from lib.catalog_display import build_product_card_html, render_catalog_header
 from lib.catalog_grid import render_product_grid
+from lib.catalog_layout_fix import inject_catalog_layout_fix
 from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
 from lib.customer_session import (
@@ -506,6 +507,9 @@ else:
         st.caption("Fim do catálogo nesta categoria.")
 
     render_back_to_top()
+
+inject_catalog_layout_fix()
+inject_catalog_action_icon_css()
 
 st.markdown("---")
 st.caption(f"Catálogo {store_name} · Compre pelo WhatsApp")

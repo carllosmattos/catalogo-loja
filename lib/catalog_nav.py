@@ -42,14 +42,17 @@ def _inject_catalog_nav_css() -> None:
             right: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            height: var(--catalog-header-height, 3.75rem) !important;
-            min-height: var(--catalog-header-height, 3.75rem) !important;
-            max-height: var(--catalog-header-height, 3.75rem) !important;
+            height: var(--catalog-header-height, 4rem) !important;
+            min-height: var(--catalog-header-height, 4rem) !important;
+            max-height: var(--catalog-header-height, 4rem) !important;
             display: grid !important;
-            grid-template-columns: var(--catalog-header-menu-size, 2.5rem) minmax(0, 1fr) auto !important;
+            grid-template-columns: var(--catalog-header-menu-size, 2.6rem) minmax(0, 1fr) auto !important;
             align-items: center !important;
-            gap: 0.4rem !important;
-            padding: 0 max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-right)) 0 max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-left)) !important;
+            gap: 0.45rem !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            padding-left: max(var(--catalog-header-padding-x, 1rem), env(safe-area-inset-left)) !important;
+            padding-right: max(var(--catalog-header-padding-x, 1rem), env(safe-area-inset-right)) !important;
             box-sizing: border-box !important;
             z-index: 10010 !important;
             background: var(--catalog-header-bg, var(--accent)) !important;
@@ -59,8 +62,8 @@ def _inject_catalog_nav_css() -> None:
         }
 
         .catalog-header-bar__menu {
-            width: var(--catalog-header-menu-size, 2.5rem) !important;
-            height: var(--catalog-header-menu-size, 2.5rem) !important;
+            width: var(--catalog-header-menu-size, 2.6rem) !important;
+            height: var(--catalog-header-menu-size, 2.6rem) !important;
             flex-shrink: 0 !important;
         }
 
@@ -91,8 +94,8 @@ def _inject_catalog_nav_css() -> None:
 
         .catalog-header-bar__logo img {
             display: block !important;
-            max-height: 2.5rem !important;
-            max-width: 3.25rem !important;
+            max-height: 2.75rem !important;
+            max-width: 3.5rem !important;
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
@@ -102,14 +105,14 @@ def _inject_catalog_nav_css() -> None:
         [class*="st-key-catalog_menu_toggle"].stElementContainer,
         div[class*="st-key-catalog_menu_toggle"] {
             position: fixed !important;
-            top: calc((var(--catalog-header-height, 3.75rem) - var(--catalog-header-menu-size, 2.5rem)) / 2) !important;
-            left: max(var(--catalog-header-padding-x, 0.85rem), env(safe-area-inset-left)) !important;
-            width: var(--catalog-header-menu-size, 2.5rem) !important;
-            height: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
-            max-width: var(--catalog-header-menu-size, 2.5rem) !important;
-            max-height: var(--catalog-header-menu-size, 2.5rem) !important;
+            top: calc((var(--catalog-header-height, 4rem) - var(--catalog-header-menu-size, 2.6rem)) / 2) !important;
+            left: max(var(--catalog-header-padding-x, 1rem), env(safe-area-inset-left)) !important;
+            width: var(--catalog-header-menu-size, 2.6rem) !important;
+            height: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.6rem) !important;
+            max-width: var(--catalog-header-menu-size, 2.6rem) !important;
+            max-height: var(--catalog-header-menu-size, 2.6rem) !important;
             z-index: 10012 !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -117,21 +120,21 @@ def _inject_catalog_nav_css() -> None:
 
         div.stElementContainer.st-key-catalog_menu_toggle div.stButton,
         [class*="st-key-catalog_menu_toggle"] div.stButton {
-            width: var(--catalog-header-menu-size, 2.5rem) !important;
-            height: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
+            width: var(--catalog-header-menu-size, 2.6rem) !important;
+            height: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.6rem) !important;
             margin: 0 !important;
         }
 
         div.stElementContainer.st-key-catalog_menu_toggle button,
         [class*="st-key-catalog_menu_toggle"] button {
-            width: var(--catalog-header-menu-size, 2.5rem) !important;
-            height: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-width: var(--catalog-header-menu-size, 2.5rem) !important;
-            min-height: var(--catalog-header-menu-size, 2.5rem) !important;
-            max-width: var(--catalog-header-menu-size, 2.5rem) !important;
-            max-height: var(--catalog-header-menu-size, 2.5rem) !important;
+            width: var(--catalog-header-menu-size, 2.6rem) !important;
+            height: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-width: var(--catalog-header-menu-size, 2.6rem) !important;
+            min-height: var(--catalog-header-menu-size, 2.6rem) !important;
+            max-width: var(--catalog-header-menu-size, 2.6rem) !important;
+            max-height: var(--catalog-header-menu-size, 2.6rem) !important;
             padding: 0 !important;
             margin: 0 !important;
             font-size: 1.05rem !important;
@@ -152,9 +155,9 @@ def _inject_catalog_nav_css() -> None:
             }
 
             :root {
-                --catalog-header-height: 3.5rem;
-                --catalog-header-menu-size: 2.35rem;
-                --catalog-header-padding-x: 0.7rem;
+                --catalog-header-height: 3.75rem;
+                --catalog-header-menu-size: 2.45rem;
+                --catalog-header-padding-x: 0.85rem;
             }
 
             .catalog-header-bar {
@@ -166,8 +169,8 @@ def _inject_catalog_nav_css() -> None:
             }
 
             .catalog-header-bar__logo img {
-                max-height: 2.15rem !important;
-                max-width: 2.85rem !important;
+                max-height: 2.35rem !important;
+                max-width: 3rem !important;
             }
         }
 
