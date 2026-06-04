@@ -4,12 +4,7 @@ import hashlib
 
 import streamlit as st
 
-from lib.brand_icons import (
-    HELP_PIX,
-    HELP_PIX_OFF,
-    inject_catalog_action_icon_css,
-    render_whatsapp_action,
-)
+from lib.brand_icons import inject_catalog_action_icon_css, render_pix_button, render_whatsapp_action
 from lib.branding import configure_page, merge_brand_settings
 from lib.cart import (
     add_to_cart,
@@ -468,12 +463,9 @@ else:
                         catalog_customer
                     )
                     if pay_ready:
-                        if st.button(
-                            "\u200b",
-                            use_container_width=True,
-                            type="primary",
+                        if render_pix_button(
                             key=f"buy_pix_{pid}_{selected_size}",
-                            help=HELP_PIX,
+                            primary=True,
                         ):
                             try:
                                 line = _line_from_product(
@@ -488,12 +480,9 @@ else:
                             except Exception as e:
                                 st.error(str(e))
                     elif payments_enabled():
-                        st.button(
-                            "\u200b",
-                            disabled=True,
-                            use_container_width=True,
+                        render_pix_button(
                             key=f"buy_pix_off_{pid}_{selected_size}",
-                            help=HELP_PIX_OFF,
+                            disabled=True,
                         )
                 with act_wa:
                     if whatsapp_number:

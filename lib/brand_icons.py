@@ -24,50 +24,38 @@ def icon_data_uri(filename: str) -> str:
 
 
 def inject_catalog_action_icon_css() -> None:
-    """Estilos Pix (aria-label) e link WhatsApp."""
-    pix = icon_data_uri("pix.svg")
-    pix_white = icon_data_uri("pix-white.svg")
-
+    """Estilos dos botões de ação com logos oficiais."""
     st.markdown(
-        f"""
+        """
         <style>
-        button[title="{HELP_PIX}"],
-        button[aria-label="{HELP_PIX}"] {{
-            font-size: 0 !important;
-            color: transparent !important;
-            line-height: 0 !important;
+        [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
             min-height: 2.15rem !important;
-        }}
+            margin-bottom: -2.15rem !important;
+            position: relative !important;
+            z-index: 2 !important;
+            pointer-events: none !important;
+            box-sizing: border-box !important;
+        }
 
-        button[title="{HELP_PIX}"]::before,
-        button[aria-label="{HELP_PIX}"]::before {{
-            content: "" !important;
+        [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit img {
             display: block !important;
             width: 1.35rem !important;
             height: 1.35rem !important;
-            margin: 0 auto !important;
-            background: url("{pix_white}") center/contain no-repeat !important;
-        }}
+        }
 
-        button[title="{HELP_PIX_OFF}"],
-        button[aria-label="{HELP_PIX_OFF}"] {{
-            font-size: 0 !important;
-            color: transparent !important;
-            line-height: 0 !important;
+        [data-testid="column"]:has(.catalog-brand-hit) div[data-testid="stButton"] > button,
+        [data-testid="column"]:has(.catalog-brand-hit) div[data-testid="stButton"] > button:hover {
             min-height: 2.15rem !important;
-        }}
+            opacity: 0 !important;
+            position: relative !important;
+            z-index: 3 !important;
+        }
 
-        button[title="{HELP_PIX_OFF}"]::before,
-        button[aria-label="{HELP_PIX_OFF}"]::before {{
-            content: "" !important;
-            display: block !important;
-            width: 1.35rem !important;
-            height: 1.35rem !important;
-            margin: 0 auto !important;
-            background: url("{pix}") center/contain no-repeat !important;
-        }}
-
-        a.catalog-brand-wa {{
+        a.catalog-brand-wa {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -79,35 +67,69 @@ def inject_catalog_action_icon_css() -> None:
             background: #fff !important;
             text-decoration: none !important;
             box-sizing: border-box !important;
-        }}
+        }
 
-        a.catalog-brand-wa:hover {{
+        a.catalog-brand-wa:hover {
             border-color: #25D366 !important;
             background: #f6fff8 !important;
-        }}
+        }
 
-        a.catalog-brand-wa img {{
+        a.catalog-brand-wa img {
             display: block !important;
             width: 1.35rem !important;
             height: 1.35rem !important;
-        }}
+        }
 
-        @media (max-width: 480px) {{
-            button[title="{HELP_PIX}"]::before,
-            button[title="{HELP_PIX_OFF}"]::before,
-            button[aria-label="{HELP_PIX}"]::before,
-            button[aria-label="{HELP_PIX_OFF}"]::before,
-            a.catalog-brand-wa img {{
+        @media (max-width: 480px) {
+            [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit {
+                min-height: 1.85rem !important;
+                margin-bottom: -1.85rem !important;
+            }
+            [data-testid="column"]:has(.catalog-brand-hit) .catalog-brand-hit img,
+            a.catalog-brand-wa img {
                 width: 1.15rem !important;
                 height: 1.15rem !important;
-            }}
-            a.catalog-brand-wa {{
+            }
+            [data-testid="column"]:has(.catalog-brand-hit) div[data-testid="stButton"] > button {
                 min-height: 1.85rem !important;
-            }}
-        }}
+            }
+            a.catalog-brand-wa {
+                min-height: 1.85rem !important;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True,
+    )
+
+
+def _brand_hit(icon_file: str, alt: str) -> None:
+    icon = icon_data_uri(icon_file)
+    st.markdown(
+        f'<div class="catalog-brand-hit">'
+        f'<img src="{icon}" alt="{html.escape(alt)}">'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_pix_button(
+    *,
+    key: str,
+    disabled: bool = False,
+    primary: bool = False,
+) -> bool:
+    """Botão Pix com logo oficial (clique invisível sobre o ícone)."""
+    icon_file = "pix.svg" if disabled or not primary else "pix-white.svg"
+    help_text = HELP_PIX_OFF if disabled else HELP_PIX
+    _brand_hit(icon_file, "Pix")
+    return st.button(
+        "\u200b",
+        key=key,
+        help=help_text,
+        disabled=disabled,
+        type="primary" if primary and not disabled else "secondary",
+        use_container_width=True,
     )
 
 
