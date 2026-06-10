@@ -89,7 +89,6 @@ elif _qp.get("view") == "Minhas compras":
 view = render_catalog_nav(nav_options, cart_count=piece_count, store_name=store_name)
 highlight_token = st.session_state.pop("highlight_order_token", None) or _qp.get("order")
 
-render_catalog_header(settings, promotions, fetch_store_banners(active_only=True))
 render_store_social_bar()
 
 if catalog_customer and catalog_customer.get("name"):
@@ -332,6 +331,8 @@ elif view == "Carrinho":
 
 # ── Catálogo ────────────────────────────────────────────────
 else:
+    render_catalog_header(settings, promotions, fetch_store_banners(active_only=True))
+
     st.markdown('<div id="catalog-top"></div>', unsafe_allow_html=True)
 
     db_categories = fetch_categories(active_only=True)

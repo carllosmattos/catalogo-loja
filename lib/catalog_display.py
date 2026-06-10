@@ -7,7 +7,6 @@ import html
 import streamlit as st
 
 from lib.branding import get_logo_path, resolve_catalog_banner, resolve_logo_url
-from lib.carousel_css import build_crossfade_carousel_css
 from lib.images import build_image_carousel_html, normalize_image_urls
 from lib.profit import GiftCost, ProfitResult
 from lib.utils import format_currency
@@ -22,15 +21,6 @@ def build_banner_header_html(mode: str, urls: list[str]) -> str:
 
     if mode == "carousel" and len(urls) >= 2:
         n = len(urls)
-        duration = CAROUSEL_SECONDS * n
-        scope = f'.store-banner-carousel[data-slides="{n}"]'
-        carousel_css = build_crossfade_carousel_css(
-            n,
-            float(duration),
-            scope=scope,
-            slide_class="store-banner-slide",
-            dot_class="store-banner-dot",
-        )
         slides = "".join(
             f'<img class="store-banner store-banner-slide" src="{html.escape(u)}" '
             f'alt="Promoção {i + 1}">'
@@ -38,10 +28,9 @@ def build_banner_header_html(mode: str, urls: list[str]) -> str:
         )
         dots = "".join('<span class="store-banner-dot"></span>' for _ in range(n))
         return (
-            f"{carousel_css}"
             f'<div class="store-header store-header-banner">'
             f'<div class="store-banner-wrap store-banner-carousel" '
-            f'data-slides="{n}" style="--banner-count:{n};--banner-duration:{duration}s">'
+            f'data-slides="{n}" data-interval="{CAROUSEL_SECONDS * 1000}">'
             f'<div class="store-banner-track">{slides}</div>'
             f'<div class="store-banner-dots">{dots}</div>'
             f"</div></div>"

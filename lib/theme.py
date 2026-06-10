@@ -674,6 +674,13 @@ def inject_theme(
             max-height: var(--catalog-banner-max-height, 320px);
             object-fit: contain;
             opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            z-index: 0;
+        }}
+
+        .store-banner-slide.is-active {{
+            opacity: 1;
+            z-index: 1;
         }}
 
         .store-banner-dots {{
@@ -688,6 +695,12 @@ def inject_theme(
             height: 6px;
             border-radius: 50%;
             background: #d0d0d0;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }}
+
+        .store-banner-dot.is-active {{
+            background: var(--primary);
+            transform: scale(1.25);
         }}
 
         .store-header:not(.store-header-banner) img,

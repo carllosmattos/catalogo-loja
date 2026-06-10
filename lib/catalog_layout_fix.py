@@ -117,9 +117,40 @@ def inject_catalog_layout_fix() -> None:
                 });
             }
 
+            function initStoreBannerCarousel() {
+                doc.querySelectorAll(".store-banner-carousel").forEach(function (carousel) {
+                    if (carousel._bannerTimer) {
+                        clearInterval(carousel._bannerTimer);
+                        carousel._bannerTimer = null;
+                    }
+                    const slides = carousel.querySelectorAll(".store-banner-slide");
+                    const dots = carousel.querySelectorAll(".store-banner-dot");
+                    if (!slides.length) return;
+
+                    let idx = 0;
+                    function show(i) {
+                        slides.forEach(function (slide, j) {
+                            slide.classList.toggle("is-active", j === i);
+                        });
+                        dots.forEach(function (dot, j) {
+                            dot.classList.toggle("is-active", j === i);
+                        });
+                    }
+                    show(0);
+                    if (slides.length < 2) return;
+
+                    const ms = parseInt(carousel.getAttribute("data-interval") || "5000", 10);
+                    carousel._bannerTimer = setInterval(function () {
+                        idx = (idx + 1) % slides.length;
+                        show(idx);
+                    }, ms);
+                });
+            }
+
             function run() {
                 fixHeader();
                 fixActionRows();
+                initStoreBannerCarousel();
             }
 
             run();
