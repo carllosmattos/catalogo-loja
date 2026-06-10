@@ -12,6 +12,7 @@ from lib.utils import (
     is_valid_cpf,
     is_valid_email,
     normalize_email,
+    normalize_phone_br,
     parse_whatsapp_number,
 )
 
@@ -33,15 +34,26 @@ def logout_catalog_customer() -> None:
     set_catalog_customer(None)
 
 
+def _parse_rpc_payload(data: Any) -> Any:
+    import json
+
+    if data is None:
+        return None
+    if isinstance(data, str):
+        try:
+            return json.loads(data)
+        except json.JSONDecodeError:
+            return None
+    return data
+
+
 def lookup_by_phone(phone: str) -> dict[str, Any] | None:
-    digits = parse_whatsapp_number(phone)
-    if len(digits) < 10:
+    digits = normalize_phone_br(parse_whatsapp_number(phone))
+    if len(digits) < 12:
         return None
     client = get_supabase()
     result = client.rpc("lookup_customer_by_phone", {"p_phone": digits}).execute()
-    data = result.data
-    if not data:
-        return None
+    data = _parse_rpc_payload(result.data)
     if isinstance(data, list):
         data = data[0] if data else None
     return data if isinstance(data, dict) else None
@@ -53,27 +65,50 @@ def save_profile(
     cpf: str,
     address: str = "",
     email: str = "",
+    *,
+    address_fields: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if not is_valid_cpf(cpf):
         raise ValueError("CPF inválido.")
     if not is_valid_email(email):
         raise ValueError("E-mail inválido.")
-    digits = parse_whatsapp_number(phone)
-    if len(digits) < 10:
+    digits = normalize_phone_br(parse_whatsapp_number(phone))
+    if len(digits) < 12:
         raise ValueError("Telefone inválido.")
 
+    addr = address_fields or {}
+    payload = {
+        "p_name": name.strip(),
+        "p_phone": digits,
+        "p_cpf": "".join(c for c in cpf if c.isdigit()),
+        "p_address": address.strip(),
+        "p_email": normalize_email(email),
+        "p_address_zip": addr.get("zip", ""),
+        "p_address_street": addr.get("street", ""),
+        "p_address_number": addr.get("number", ""),
+        "p_address_complement": addr.get("complement", ""),
+        "p_address_neighborhood": addr.get("neighborhood", ""),
+        "p_address_city": addr.get("city", ""),
+        "p_address_state": addr.get("state", ""),
+    }
+
     client = get_supabase()
-    result = client.rpc(
-        "save_customer_profile",
-        {
-            "p_name": name.strip(),
-            "p_phone": digits,
-            "p_cpf": "".join(c for c in cpf if c.isdigit()),
-            "p_address": address.strip(),
-            "p_email": normalize_email(email),
-        },
-    ).execute()
-    data = result.data
+    try:
+        result = client.rpc("save_customer_profile", payload).execute()
+    except Exception:
+        basic = {
+            "p_name": payload["p_name"],
+            "p_phone": payload["p_phone"],
+            "p_cpf": payload["p_cpf"],
+            "p_address": payload["p_address"],
+            "p_email": payload["p_email"],
+        }
+        if addr.get("street") or addr.get("city"):
+            from lib.address import _format_address_lines
+
+            basic["p_address"] = _format_address_lines(addr)
+        result = client.rpc("save_customer_profile", basic).execute()
+    data = _parse_rpc_payload(result.data)
     if isinstance(data, list):
         data = data[0] if data else None
     if not data:
@@ -109,8 +144,12 @@ def customer_for_whatsapp(customer: dict[str, Any] | None) -> list[str]:
         lines.append(f"Telefone: {customer['phone']}")
     if customer.get("cpf"):
         lines.append(f"CPF: {format_cpf(customer['cpf'])}")
-    if customer.get("address"):
-        lines.append(f"Endereço: {customer['address']}")
+    if customer.get("address") or customer.get("address_street"):
+        from lib.address import format_customer_address
+
+        formatted = format_customer_address(customer)
+        if formatted:
+            lines.append(f"Endereço: {formatted.replace(chr(10), ', ')}")
     if customer.get("email"):
         lines.append(f"E-mail: {customer['email']}")
     if lines:

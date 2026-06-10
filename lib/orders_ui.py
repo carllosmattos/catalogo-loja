@@ -6,8 +6,9 @@ from typing import Any
 
 import streamlit as st
 
+from lib.feedback import catalog_toast, flash_toast
 from lib.payments.factory import app_base_url, payments_enabled
-from lib.payments.orders_db import cancel_order, list_customer_orders, request_refund
+from lib.payments.orders_db import cancel_order, get_order_bundle, list_customer_orders, request_refund
 from lib.payments.whatsapp_payment import build_whatsapp_payment_url
 from lib.utils import format_currency
 
@@ -72,23 +73,50 @@ def render_order_detail(
 
     if customer_id and str(order.get("customer_id")) == str(customer_id):
         if status == "pending_payment":
-            if st.button("Cancelar pedido", key=f"cancel_{oid}", use_container_width=True):
-                try:
-                    cancel_order(customer_id, oid)
-                    st.success("Pedido cancelado.")
+            col_cancel, col_refresh = st.columns(2)
+            with col_refresh:
+                if st.button("Atualizar status", key=f"refresh_{oid}", use_container_width=True):
+                    mp_id = payment.get("provider_payment_id")
+                    if mp_id:
+                        try:
+                            from lib.payments.factory import get_payment_gateway, payments_enabled
+                            from lib.payments.mercado_pago.mapper import map_mp_status
+
+                            if payments_enabled():
+                                mp = get_payment_gateway().get_payment(str(mp_id))
+                                mp_status = map_mp_status(mp.get("status", ""))
+                                catalog_toast(
+                                    "info",
+                                    f"Status no Mercado Pago: {mp_status}. "
+                                    "Se já pagou, aguarde a confirmação.",
+                                )
+                        except Exception as e:
+                            catalog_toast("error", str(e))
                     st.rerun()
-                except Exception as e:
-                    st.error(str(e))
+            with col_cancel:
+                if st.button("Cancelar pedido", key=f"cancel_{oid}", use_container_width=True):
+                    try:
+                        cancel_order(
+                            customer_id,
+                            oid,
+                            provider_payment_id=payment.get("provider_payment_id"),
+                        )
+                        flash_toast("success", "Pedido cancelado.")
+                        st.rerun()
+                    except Exception as e:
+                        flash_toast("error", str(e))
+                        st.rerun()
         elif status == "paid":
             with st.form(f"refund_{oid}"):
                 reason = st.text_area("Motivo do reembolso", height=80)
                 if st.form_submit_button("Solicitar reembolso", use_container_width=True):
                     try:
                         request_refund(customer_id, oid, reason)
-                        st.success("Solicitação enviada. A loja irá analisar.")
+                        flash_toast("success", "Solicitação enviada. A loja irá analisar.")
                         st.rerun()
                     except Exception as e:
-                        st.error(str(e))
+                        flash_toast("error", str(e))
+                        st.rerun()
 
 
 def render_my_orders(
@@ -99,14 +127,12 @@ def render_my_orders(
     highlight_token: str | None = None,
 ) -> None:
     if not payments_enabled():
-        st.info("Pagamentos online em breve.")
+        catalog_toast("info", "Pagamentos online em breve.")
         return
 
     customer_id = str(customer.get("id", ""))
     if highlight_token:
-        from lib.payments.checkout import get_tracking_bundle
-
-        bundle = get_tracking_bundle(highlight_token)
+        bundle = get_order_bundle(highlight_token)
         if bundle:
             st.subheader("Acompanhar minha compra")
             render_order_detail(
@@ -116,15 +142,22 @@ def render_my_orders(
                 store_name=store_name,
             )
             st.markdown("---")
+        else:
+            catalog_toast("warning", "Pedido não encontrado ou link inválido.")
 
-    rows = list_customer_orders(customer_id)
+    rows, list_error = list_customer_orders(customer_id)
+    if list_error:
+        catalog_toast(
+            "error",
+            "Não foi possível carregar seus pedidos. "
+            "Verifique se a migração 021 foi aplicada no Supabase.",
+        )
+        return
     if not rows:
-        st.info("Você ainda não tem pedidos.")
+        catalog_toast("info", "Você ainda não tem pedidos.")
         return
 
     st.subheader("Minhas compras")
-    from lib.payments.checkout import get_tracking_bundle
-
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -134,9 +167,9 @@ def render_my_orders(
             f"{_status_badge(order.get('status', ''))} — "
             f"{format_currency(float(order.get('total_amount', 0)))} — "
             f"{(order.get('created_at') or '')[:10]}",
-            expanded=bool(highlight_token and token == highlight_token),
+            expanded=bool(highlight_token and token == str(highlight_token).strip()),
         ):
-            full = get_tracking_bundle(token) if token else None
+            full = get_order_bundle(token) if token else None
             if full:
                 render_order_detail(
                     full,

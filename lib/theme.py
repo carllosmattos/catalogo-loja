@@ -44,7 +44,9 @@ def inject_theme(
             --catalog-header-menu-size: 3rem;
             --catalog-header-menu-padding: 0.45rem;
             --catalog-header-padding-x: 1rem;
-            --catalog-header-bg: var(--accent);
+            --catalog-header-bg: linear-gradient(135deg, #8B0A50 0%, #C71585 100%);
+            --catalog-header-fg: #ffffff;
+            --catalog-banner-max-height: 320px;
         }
 
         .block-container {
@@ -641,7 +643,7 @@ def inject_theme(
         .store-banner {{
             width: 100%;
             height: auto;
-            max-height: 200px;
+            max-height: var(--catalog-banner-max-height, 320px);
             object-fit: contain;
             display: block;
             margin: 0 auto;
@@ -651,8 +653,8 @@ def inject_theme(
         .store-banner-carousel {{
             position: relative;
             width: 100%;
-            min-height: 120px;
-            max-height: 200px;
+            min-height: 160px;
+            max-height: var(--catalog-banner-max-height, 320px);
             aspect-ratio: 2 / 1;
         }}
 
@@ -660,7 +662,7 @@ def inject_theme(
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 120px;
+            min-height: 160px;
         }}
 
         .store-banner-slide {{
@@ -669,29 +671,9 @@ def inject_theme(
             left: 0;
             width: 100%;
             height: 100%;
-            max-height: 200px;
+            max-height: var(--catalog-banner-max-height, 320px);
             object-fit: contain;
             opacity: 0;
-            animation: bannerCrossfade var(--banner-duration, 15s) infinite;
-        }}
-
-        .store-banner-slide:nth-child(1) {{ animation-delay: 0s; }}
-        .store-banner-slide:nth-child(2) {{
-            animation-delay: calc(-1 * var(--banner-duration, 15s) / var(--banner-count, 2));
-        }}
-        .store-banner-slide:nth-child(3) {{
-            animation-delay: calc(-2 * var(--banner-duration, 15s) / var(--banner-count, 3));
-        }}
-        .store-banner-slide:nth-child(4) {{
-            animation-delay: calc(-3 * var(--banner-duration, 15s) / var(--banner-count, 4));
-        }}
-        .store-banner-slide:nth-child(5) {{
-            animation-delay: calc(-4 * var(--banner-duration, 15s) / var(--banner-count, 5));
-        }}
-
-        @keyframes bannerCrossfade {{
-            0%, 18% {{ opacity: 1; z-index: 1; }}
-            22%, 100% {{ opacity: 0; z-index: 0; }}
         }}
 
         .store-banner-dots {{
@@ -705,17 +687,7 @@ def inject_theme(
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: #e0c0d0;
-            animation: bannerDot var(--banner-duration, 15s) infinite;
-        }}
-
-        .store-banner-dot.active {{
-            background: var(--primary);
-        }}
-
-        @keyframes bannerDot {{
-            0%, 18% {{ background: var(--primary); transform: scale(1.2); }}
-            22%, 100% {{ background: #e0c0d0; transform: scale(1); }}
+            background: #d0d0d0;
         }}
 
         .store-header:not(.store-header-banner) img,

@@ -6,6 +6,8 @@ from lib.auth import require_auth, render_sidebar
 from lib.branding import configure_page
 from lib.payments.admin import (
     approve_refund_request,
+    fetch_order_bundle_by_id,
+    fetch_orders,
     fetch_payments,
     fetch_refund_requests,
     reject_refund_request,
@@ -21,7 +23,37 @@ if not require_auth():
 
 st.title("💳 Pagamentos")
 
-tab_tx, tab_refund, tab_cfg = st.tabs(["Transações", "Reembolsos", "Configuração"])
+tab_orders, tab_tx, tab_refund, tab_cfg = st.tabs(
+    ["Pedidos", "Transações", "Reembolsos", "Configuração"]
+)
+
+with tab_orders:
+    orders = fetch_orders(80)
+    if not orders:
+        st.info("Nenhum pedido online registrado.")
+    else:
+        for o in orders:
+            items = o.get("order_items") or []
+            payments = o.get("payments") or []
+            pay = payments[0] if isinstance(payments, list) and payments else {}
+            item_lines = ", ".join(
+                f"{it.get('product_name')} ×{it.get('quantity', 1)}"
+                for it in items[:3]
+            )
+            label = (
+                f"{(o.get('created_at') or '')[:16]} — {o.get('status')} — "
+                f"{format_currency(float(o.get('total_amount', 0)))} — "
+                f"{o.get('customer_name', '')}"
+            )
+            with st.expander(label):
+                st.markdown(f"**Cliente:** {o.get('customer_name')} — {o.get('customer_email')}")
+                st.markdown(f"**Itens:** {item_lines or '—'}")
+                st.markdown(f"**Pagamento:** {pay.get('status', '—')} — MP `{pay.get('provider_payment_id') or '—'}`")
+                if pay.get("pix_copy_paste"):
+                    st.code(pay["pix_copy_paste"], language=None)
+                bundle = fetch_order_bundle_by_id(str(o["id"]))
+                if bundle:
+                    st.caption(f"Pedido `{o['id']}` · tracking `{o.get('tracking_token', '')}`")
 
 with tab_tx:
     payments = fetch_payments(80)
@@ -44,7 +76,6 @@ with tab_tx:
                     st.code(p["pix_copy_paste"], language=None)
                 if order.get("id"):
                     from lib.catalog import fetch_store_settings
-                    from lib.payments.admin import fetch_order_bundle_by_id
                     from lib.payments.whatsapp_payment import build_whatsapp_payment_url
 
                     settings = fetch_store_settings()

@@ -58,6 +58,17 @@ class MercadoPagoGateway(PaymentGateway):
             raw=payment,
         )
 
+    def cancel_payment(self, provider_payment_id: str) -> dict[str, Any]:
+        pid: int | str = provider_payment_id
+        if str(provider_payment_id).isdigit():
+            pid = int(provider_payment_id)
+        response = self._sdk.payment().cancel(pid)
+        if response.get("status", 0) >= 400:
+            payment = response.get("response") or {}
+            msg = payment.get("message") or str(response)
+            raise ValueError(f"Mercado Pago: {msg}")
+        return response.get("response") or {}
+
     def get_payment(self, provider_payment_id: str) -> dict[str, Any]:
         response = self._sdk.payment().get(provider_payment_id)
         return response.get("response") or {}

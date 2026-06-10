@@ -12,6 +12,22 @@ def parse_whatsapp_number(raw: str) -> str:
     return "".join(c for c in raw if c.isdigit())
 
 
+def normalize_phone_br(raw: str) -> str:
+    """Canonicaliza telefone BR para 55 + DDD + número (12–13 dígitos)."""
+    digits = parse_whatsapp_number(raw)
+    if len(digits) < 10:
+        return digits
+    if digits.startswith("55") and len(digits) >= 12:
+        local = digits[2:]
+    else:
+        local = digits
+    if len(local) in (10, 11):
+        return "55" + local
+    if len(local) > 11:
+        return "55" + local[-11:]
+    return "55" + local
+
+
 def normalize_cpf(raw: str) -> str:
     """Retorna CPF com 11 dígitos ou string vazia."""
     digits = "".join(c for c in raw if c.isdigit())

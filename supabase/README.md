@@ -25,6 +25,9 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 017 | [`migrations/017_repair_payment_rpcs.sql`](migrations/017_repair_payment_rpcs.sql) | Reparo se 016 parou no meio (RPC ausente) |
 | 018 | [`migrations/018_fix_create_checkout_uuid.sql`](migrations/018_fix_create_checkout_uuid.sql) | Corrige UUID no checkout |
 | 019 | [`migrations/019_store_banners.sql`](migrations/019_store_banners.sql) | Vários banners da loja + carrossel |
+| 020 | [`migrations/020_fix_get_order_by_tracking.sql`](migrations/020_fix_get_order_by_tracking.sql) | Corrige RPC `get_order_by_tracking` (token da URL) |
+| 021 | [`migrations/021_phone_lookup_and_payment_rpcs.sql`](migrations/021_phone_lookup_and_payment_rpcs.sql) | Telefone normalizado + RPCs de pedidos (reparo) |
+| 023 | [`migrations/023_customer_address_fields.sql`](migrations/023_customer_address_fields.sql) | Endereço com campos separados (CEP, rua, etc.) |
 
 ## Já rodou o schema antes?
 
@@ -48,6 +51,9 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Erro `create_checkout_order not found` → rode **017**
 - Erro `uuid_generate_v4 does not exist` → rode **018**
 - Vários banners com carrossel no admin → **019**
+- Erro ao abrir pedido pelo link `?order=` → **020**
+- Login por telefone não encontra cliente / erro em Minhas compras → **021**
+- Endereço estruturado no cadastro → **023**
 
 ## Projeto do zero
 

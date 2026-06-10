@@ -58,6 +58,18 @@ def fetch_payment(payment_id: str) -> dict[str, Any] | None:
     return result.data[0] if result.data else None
 
 
+def fetch_orders(limit: int = 80) -> list[dict[str, Any]]:
+    client = get_authenticated_client()
+    result = (
+        client.table("orders")
+        .select("*, order_items(*), payments(*)")
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+
+
 def fetch_refund_requests(status: str | None = "pending", limit: int = 50) -> list[dict[str, Any]]:
     client = get_authenticated_client()
     query = (
@@ -91,10 +103,19 @@ def approve_refund_request(refund_id: str, admin_notes: str = "") -> None:
     from lib.payments.factory import get_payment_gateway
 
     gateway = get_payment_gateway()
-    gateway.refund_payment(str(mp_id))
+    refund_result = gateway.refund_payment(str(mp_id))
+    provider_refund_id = str(
+        refund_result.get("id")
+        or refund_result.get("refund_id")
+        or ""
+    )
 
     client.table("refund_requests").update(
-        {"status": "approved", "admin_notes": admin_notes.strip()}
+        {
+            "status": "approved",
+            "admin_notes": admin_notes.strip(),
+            "provider_refund_id": provider_refund_id or None,
+        }
     ).eq("id", refund_id).execute()
 
     order_id = req.get("order_id")

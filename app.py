@@ -32,6 +32,7 @@ from lib.catalog_grid import render_product_grid
 from lib.catalog_layout_fix import inject_catalog_layout_fix
 from lib.catalog_nav import render_catalog_nav, render_category_filter
 from lib.categories import fetch_categories
+from lib.feedback import catalog_toast, flash_toast, show_flash_toasts
 from lib.customer_session import (
     customer_display_name,
     customer_profile_complete,
@@ -52,7 +53,8 @@ from lib.profit import calculate_profit
 from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_stock
 from lib.social import render_developer_footer, render_store_social_bar
 from lib.theme import inject_theme
-from lib.utils import format_cpf, format_currency, is_valid_cpf, is_valid_email
+from lib.address import render_address_fields
+from lib.utils import format_cpf, format_currency, is_valid_cpf, is_valid_email, normalize_phone_br, parse_whatsapp_number
 from lib.whatsapp import build_cart_message, build_order_message, build_whatsapp_url
 
 CATALOG_PAGE_SIZE = 20
@@ -62,11 +64,12 @@ configure_page("Catálogo", sidebar_state="expanded")
 try:
     settings = merge_brand_settings(fetch_store_settings())
 except Exception as e:
-    st.error(f"Erro ao conectar ao Supabase: {e}")
-    st.info("Tente novamente em alguns instantes.")
+    catalog_toast("error", f"Erro ao conectar ao Supabase: {e}")
+    catalog_toast("info", "Tente novamente em alguns instantes.")
     st.stop()
 
 inject_theme(settings, catalog_app=True)
+show_flash_toasts()
 inject_catalog_action_icon_css()
 
 store_name = settings["store_name"]
@@ -96,12 +99,14 @@ if catalog_customer and catalog_customer.get("name"):
     )
 
 if not whatsapp_number:
-    st.warning("Catálogo em configuração. WhatsApp ainda não definido.")
+    catalog_toast("warning", "Catálogo em configuração. WhatsApp ainda não definido.")
 
 # ── Minhas compras ──────────────────────────────────────────
 if view == "Minhas compras":
     if not catalog_customer or not catalog_customer.get("id"):
-        st.warning("Entre em **Minha conta** para ver seus pedidos.")
+        flash_toast("info", "Entre em Minha conta para ver seus pedidos.")
+        st.session_state.catalog_view = "Minha conta"
+        st.rerun()
     else:
         render_my_orders(
             catalog_customer,
@@ -132,11 +137,7 @@ elif view == "Minha conta":
                 value=catalog_customer.get("email", ""),
                 placeholder="seu@email.com",
             )
-            prof_address = st.text_area(
-                "Endereço de entrega",
-                value=catalog_customer.get("address", ""),
-                placeholder="Rua, número, bairro, cidade…",
-            )
+            addr_fields = render_address_fields(catalog_customer, key_prefix="prof_addr")
             save_prof = st.form_submit_button("Salvar cadastro", use_container_width=True)
             if save_prof:
                 try:
@@ -144,15 +145,16 @@ elif view == "Minha conta":
                         prof_name,
                         prof_phone,
                         prof_cpf,
-                        prof_address,
-                        prof_email,
+                        email=prof_email,
+                        address_fields=addr_fields,
                     )
                     set_catalog_customer(updated)
                     st.session_state.catalog_view = "Catálogo"
-                    st.success("Cadastro atualizado!")
+                    flash_toast("success", "Cadastro atualizado!")
                     st.rerun()
                 except Exception as e:
-                    st.error(str(e))
+                    flash_toast("error", str(e))
+                    st.rerun()
 
         if st.button("Sair", use_container_width=True):
             logout_catalog_customer()
@@ -165,32 +167,30 @@ elif view == "Minha conta":
             new_name = st.text_input("Nome *")
             new_cpf = st.text_input("CPF *", placeholder="000.000.000-00")
             new_email = st.text_input("E-mail *", placeholder="seu@email.com")
-            new_address = st.text_area(
-                "Endereço de entrega",
-                placeholder="Rua, número, bairro, cidade…",
-            )
+            addr_fields = render_address_fields(None, key_prefix="new_addr")
             if st.form_submit_button("Salvar cadastro", use_container_width=True):
                 try:
                     if not new_name.strip():
-                        st.error("Informe seu nome.")
+                        catalog_toast("error", "Informe seu nome.")
                     elif not is_valid_cpf(new_cpf):
-                        st.error("CPF inválido.")
+                        catalog_toast("error", "CPF inválido.")
                     elif not is_valid_email(new_email):
-                        st.error("E-mail inválido.")
+                        catalog_toast("error", "E-mail inválido.")
                     else:
                         created = save_profile(
                             new_name,
                             catalog_customer["phone"],
                             new_cpf,
-                            new_address,
-                            new_email,
+                            email=new_email,
+                            address_fields=addr_fields,
                         )
                         set_catalog_customer(created)
                         st.session_state.catalog_view = "Catálogo"
-                        st.success("Cadastro criado!")
+                        flash_toast("success", "Cadastro criado!")
                         st.rerun()
                 except Exception as e:
-                    st.error(str(e))
+                    flash_toast("error", str(e))
+                    st.rerun()
         if st.button("Voltar ao catálogo", use_container_width=True):
             st.session_state.catalog_view = "Catálogo"
             logout_catalog_customer()
@@ -209,13 +209,15 @@ elif view == "Minha conta":
             if found:
                 set_catalog_customer(found)
                 st.session_state.catalog_view = "Catálogo"
+                flash_toast("success", f"Bem-vinda, {customer_display_name(found)}!")
                 st.rerun()
-            elif len("".join(c for c in login_phone if c.isdigit())) >= 10:
-                digits = "".join(c for c in login_phone if c.isdigit())
+            elif len(parse_whatsapp_number(login_phone)) >= 10:
+                digits = normalize_phone_br(login_phone)
                 set_catalog_customer({"phone": digits, "is_new": True})
+                flash_toast("info", "Telefone não encontrado. Complete seu cadastro.")
                 st.rerun()
             else:
-                st.error("Informe um telefone válido.")
+                catalog_toast("error", "Informe um telefone válido.")
 
 # ── Carrinho ────────────────────────────────────────────────
 elif view == "Carrinho":
@@ -223,7 +225,7 @@ elif view == "Carrinho":
     totals = cart_totals()
 
     if not cart:
-        st.info("Seu carrinho está vazio. Volte ao catálogo e adicione peças.")
+        catalog_toast("info", "Seu carrinho está vazio. Volte ao catálogo e adicione peças.")
     else:
         for item in cart:
             line_id = item.get("cart_line_id", item["product_id"])
@@ -275,7 +277,7 @@ elif view == "Carrinho":
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
-        pay_ok = payments_enabled() and customer_profile_complete(catalog_customer)
+        pay_ok = payments_enabled()
         col_pay, col_wa, col_clear = st.columns([2, 1, 1])
         with col_pay:
             if pay_ok:
@@ -285,29 +287,35 @@ elif view == "Carrinho":
                     use_container_width=True,
                     key="cart_pay_pix",
                 ):
-                    try:
-                        products_map = {
-                            str(p["id"]): p for p in fetch_products(active_only=True)
-                        }
-                        lines = build_lines_from_cart(cart, products_map)
-                        result = start_checkout(catalog_customer, lines)
-                        clear_cart()
-                        st.session_state.highlight_order_token = result["tracking_token"]
-                        st.session_state.catalog_view = "Minhas compras"
-                        if result.get("pix_copy_paste"):
-                            st.session_state.last_pix = result["pix_copy_paste"]
+                    if not customer_profile_complete(catalog_customer):
+                        flash_toast(
+                            "info",
+                            "Entre em Minha conta para pagar com PIX.",
+                        )
+                        st.session_state.catalog_view = "Minha conta"
                         st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
-            elif payments_enabled():
-                st.button(
-                    "Pagar com PIX",
-                    disabled=True,
-                    use_container_width=True,
-                    key="cart_pay_pix_off",
-                )
+                    else:
+                        try:
+                            products_map = {
+                                str(p["id"]): p for p in fetch_products(active_only=True)
+                            }
+                            lines = build_lines_from_cart(cart, products_map)
+                            result = start_checkout(catalog_customer, lines)
+                            clear_cart()
+                            st.session_state.highlight_order_token = result["tracking_token"]
+                            st.session_state.catalog_view = "Minhas compras"
+                            if result.get("pix_copy_paste"):
+                                st.session_state.last_pix = result["pix_copy_paste"]
+                            flash_toast(
+                                "success",
+                                "Pedido criado! Confira o PIX em Minhas compras.",
+                            )
+                            st.rerun()
+                        except Exception as e:
+                            flash_toast("error", str(e))
+                            st.rerun()
             else:
-                st.caption("PIX em configuração.")
+                catalog_toast("info", "PIX em configuração.")
         with col_wa:
             if whatsapp_number:
                 cart_msg = build_cart_message(cart, store_name, catalog_customer)
@@ -373,9 +381,9 @@ else:
 
     if total_products == 0:
         if selected_category != "Todas":
-            st.info(f"Nenhuma peça em **{selected_category}** no momento.")
+            catalog_toast("info", f"Nenhuma peça em {selected_category} no momento.")
         else:
-            st.info("Em breve novidades por aqui!")
+            catalog_toast("info", "Em breve novidades por aqui!")
         st.stop()
 
     shown = len(page_products)
@@ -432,19 +440,19 @@ else:
                             st.rerun()
 
             if all_oos:
-                st.warning("Produto esgotado em todos os tamanhos.")
                 st.button(
                     "Indisponível",
                     disabled=True,
                     use_container_width=True,
                     key=f"unavail_{pid}",
                 )
-            elif size_oos:
-                st.warning(
-                    f"Tamanho {size_display_label(selected_size)} esgotado — escolha outro."
+            elif size_oos or not profit.gift_stock_ok:
+                st.button(
+                    "Indisponível",
+                    disabled=True,
+                    use_container_width=True,
+                    key=f"unavail_{pid}",
                 )
-            elif not profit.gift_stock_ok:
-                st.warning("Brinde indisponível no momento.")
             else:
                 act_add, act_pix, act_wa = st.columns(3, gap="small")
                 with act_add:
@@ -456,36 +464,41 @@ else:
                     ):
                         item = cart_item_from_product(product, profit, selected_size)
                         if add_to_cart(item):
-                            st.toast("Adicionado ao carrinho!")
+                            catalog_toast("success", "Adicionado ao carrinho!")
                             st.rerun()
                         else:
-                            st.error("Estoque insuficiente.")
+                            catalog_toast("error", "Estoque insuficiente.")
                 with act_pix:
-                    pay_ready = payments_enabled() and customer_profile_complete(
-                        catalog_customer
-                    )
-                    if pay_ready:
+                    if payments_enabled():
                         if render_pix_button(
                             key=f"buy_pix_{pid}_{selected_size}",
                             primary=True,
                         ):
-                            try:
-                                line = _line_from_product(
-                                    product, selected_size, 1, promotions
+                            if not customer_profile_complete(catalog_customer):
+                                flash_toast(
+                                    "info",
+                                    "Entre em Minha conta para pagar com PIX.",
                                 )
-                                result = start_checkout(catalog_customer, [line])
-                                st.session_state.highlight_order_token = result[
-                                    "tracking_token"
-                                ]
-                                st.session_state.catalog_view = "Minhas compras"
+                                st.session_state.catalog_view = "Minha conta"
                                 st.rerun()
-                            except Exception as e:
-                                st.error(str(e))
-                    elif payments_enabled():
-                        render_pix_button(
-                            key=f"buy_pix_off_{pid}_{selected_size}",
-                            disabled=True,
-                        )
+                            else:
+                                try:
+                                    line = _line_from_product(
+                                        product, selected_size, 1, promotions
+                                    )
+                                    result = start_checkout(catalog_customer, [line])
+                                    st.session_state.highlight_order_token = result[
+                                        "tracking_token"
+                                    ]
+                                    st.session_state.catalog_view = "Minhas compras"
+                                    flash_toast(
+                                        "success",
+                                        "Pedido criado! Confira o PIX em Minhas compras.",
+                                    )
+                                    st.rerun()
+                                except Exception as e:
+                                    flash_toast("error", str(e))
+                                    st.rerun()
                 with act_wa:
                     if whatsapp_number:
                         message = build_order_message(

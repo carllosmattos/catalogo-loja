@@ -71,7 +71,7 @@ def _inject_catalog_nav_css() -> None:
             font-family: Georgia, "Times New Roman", serif;
             font-size: 1rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--catalog-header-fg, #ffffff);
             line-height: 1 !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;

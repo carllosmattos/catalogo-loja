@@ -14,9 +14,9 @@ BANNER_DEFAULT = ROOT / "resources" / "banner.png"
 
 STORE_NAME = "LM moda feminina"
 
-PRIMARY = "#C71585"
+PRIMARY = "#8B0A50"
 SECONDARY = "#D4AF37"
-ACCENT = "#F8C8DC"
+ACCENT = "#FFF5F8"
 
 DEFAULT_SETTINGS = {
     "store_name": STORE_NAME,
