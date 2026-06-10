@@ -22,7 +22,7 @@ from lib.catalog import (
     update_store_settings,
     upload_image,
 )
-from lib.catalog_display import build_banner_header_html, render_catalog_header
+from lib.catalog_display import build_banner_header_markup, render_catalog_header
 from lib.theme import inject_theme
 from lib.utils import parse_whatsapp_number
 
@@ -50,7 +50,7 @@ if not store_banners and settings.get("default_banner_url"):
     )
     legacy_url = settings["default_banner_url"]
     st.markdown(
-        build_banner_header_html("single", [legacy_url]),
+        build_banner_header_markup("single", [legacy_url]),
         unsafe_allow_html=True,
     )
 
@@ -58,7 +58,7 @@ active_urls = [b["image_url"] for b in store_banners if b.get("active") and b.ge
 if active_urls:
     mode = "carousel" if len(active_urls) >= 2 else "single"
     st.markdown(
-        build_banner_header_html(mode, active_urls),
+        build_banner_header_markup(mode, active_urls),
         unsafe_allow_html=True,
     )
 elif store_banners:

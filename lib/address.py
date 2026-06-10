@@ -66,6 +66,26 @@ def format_customer_address(customer: dict[str, Any] | None) -> str:
     return (customer.get("address") or "").strip()
 
 
+def apply_address_to_session(customer: dict[str, Any] | None, key_prefix: str) -> None:
+    """Preenche chaves de session_state para render_address_fields."""
+    fields = address_fields_from_customer(customer)
+    for name, value in fields.items():
+        st.session_state[f"{key_prefix}_{name}"] = value
+
+
+def address_fields_from_session(key_prefix: str) -> dict[str, str]:
+    """Lê campos de endereço gravados no session_state."""
+    return {
+        "zip": st.session_state.get(f"{key_prefix}_zip", "") or "",
+        "street": st.session_state.get(f"{key_prefix}_street", "") or "",
+        "number": st.session_state.get(f"{key_prefix}_number", "") or "",
+        "complement": st.session_state.get(f"{key_prefix}_complement", "") or "",
+        "neighborhood": st.session_state.get(f"{key_prefix}_neighborhood", "") or "",
+        "city": st.session_state.get(f"{key_prefix}_city", "") or "",
+        "state": st.session_state.get(f"{key_prefix}_state", "") or "",
+    }
+
+
 def render_address_fields(
     customer: dict[str, Any] | None,
     *,

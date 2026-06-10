@@ -15,7 +15,7 @@ from lib.catalog import (
     update_promotion,
     upload_image,
 )
-from lib.catalog_display import build_banner_header_html
+from lib.catalog_display import build_banner_header_markup
 from lib.images import normalize_image_urls, render_admin_gallery
 from lib.utils import format_currency
 
@@ -167,7 +167,7 @@ with tab_list:
             with st.expander(label):
                 if promo.get("banner_url"):
                     st.markdown(
-                        build_banner_header_html("single", [promo["banner_url"]]),
+                        build_banner_header_markup("single", [promo["banner_url"]]),
                         unsafe_allow_html=True,
                     )
 

@@ -7,6 +7,7 @@ import html
 import streamlit as st
 
 from lib.branding import get_logo_path, resolve_catalog_banner, resolve_logo_url
+from lib.carousel_css import build_crossfade_carousel_css
 from lib.images import build_image_carousel_html, normalize_image_urls
 from lib.profit import GiftCost, ProfitResult
 from lib.utils import format_currency
@@ -14,35 +15,46 @@ from lib.utils import format_currency
 CAROUSEL_SECONDS = 5
 
 
-def build_banner_header_html(mode: str, urls: list[str]) -> str:
-    """HTML do header com banner único ou carrossel."""
+def build_banner_header_html(mode: str, urls: list[str]) -> tuple[str, str]:
+    """HTML do header com banner único ou carrossel. Retorna (css, html)."""
     if not urls:
-        return ""
+        return "", ""
 
     if mode == "carousel" and len(urls) >= 2:
         n = len(urls)
+        duration = float(CAROUSEL_SECONDS * n)
+        carousel_id = f"store{n}"
+        css = build_crossfade_carousel_css(n, duration, carousel_id=carousel_id)
         slides = "".join(
             f'<img class="store-banner store-banner-slide" src="{html.escape(u)}" '
             f'alt="Promoção {i + 1}">'
             for i, u in enumerate(urls)
         )
         dots = "".join('<span class="store-banner-dot"></span>' for _ in range(n))
-        return (
+        body = (
             f'<div class="store-header store-header-banner">'
             f'<div class="store-banner-wrap store-banner-carousel" '
-            f'data-slides="{n}" data-interval="{CAROUSEL_SECONDS * 1000}">'
+            f'data-slides="{n}" data-carousel-id="{carousel_id}">'
             f'<div class="store-banner-track">{slides}</div>'
             f'<div class="store-banner-dots">{dots}</div>'
             f"</div></div>"
         )
+        return css, body
 
     url = urls[0]
-    return (
+    body = (
         f'<div class="store-header store-header-banner">'
         f'<div class="store-banner-wrap">'
         f'<img class="store-banner" src="{html.escape(url)}" alt="Banner da loja">'
         f"</div></div>"
     )
+    return "", body
+
+
+def build_banner_header_markup(mode: str, urls: list[str]) -> str:
+    """CSS + HTML em uma string (admin preview)."""
+    css, body = build_banner_header_html(mode, urls)
+    return css + body
 
 
 def render_catalog_header(
@@ -54,7 +66,11 @@ def render_catalog_header(
     banner = resolve_catalog_banner(settings, promotions, store_banners)
 
     if banner["mode"] != "legacy":
-        st.markdown(build_banner_header_html(banner["mode"], banner["urls"]), unsafe_allow_html=True)
+        css, body = build_banner_header_html(banner["mode"], banner["urls"])
+        if css:
+            st.markdown(css, unsafe_allow_html=True)
+        if body:
+            st.markdown(body, unsafe_allow_html=True)
         return
 
     store_name = settings.get("store_name", "")
@@ -81,7 +97,7 @@ def build_banner_preview_html(
     banner = resolve_catalog_banner(settings, promotions, store_banners)
     if banner["mode"] == "legacy":
         return ""
-    return build_banner_header_html(banner["mode"], banner["urls"])
+    return build_banner_header_markup(banner["mode"], banner["urls"])
 
 
 def _promo_percent(profit: ProfitResult) -> int | None:

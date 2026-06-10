@@ -7,16 +7,22 @@ from typing import Any
 from lib.supabase_client import get_authenticated_client
 
 
-def fetch_payments(limit: int = 100) -> list[dict[str, Any]]:
+def fetch_payments(limit: int = 25, offset: int = 0) -> list[dict[str, Any]]:
     client = get_authenticated_client()
     result = (
         client.table("payments")
         .select("*, orders(*)")
         .order("created_at", desc=True)
-        .limit(limit)
+        .range(offset, offset + max(limit, 1) - 1)
         .execute()
     )
     return result.data or []
+
+
+def count_payments() -> int:
+    client = get_authenticated_client()
+    result = client.table("payments").select("id", count="exact").execute()
+    return int(result.count or 0)
 
 
 def fetch_order_bundle_by_id(order_id: str) -> dict[str, Any] | None:
@@ -58,16 +64,22 @@ def fetch_payment(payment_id: str) -> dict[str, Any] | None:
     return result.data[0] if result.data else None
 
 
-def fetch_orders(limit: int = 80) -> list[dict[str, Any]]:
+def fetch_orders(limit: int = 25, offset: int = 0) -> list[dict[str, Any]]:
     client = get_authenticated_client()
     result = (
         client.table("orders")
         .select("*, order_items(*), payments(*)")
         .order("created_at", desc=True)
-        .limit(limit)
+        .range(offset, offset + max(limit, 1) - 1)
         .execute()
     )
     return result.data or []
+
+
+def count_orders() -> int:
+    client = get_authenticated_client()
+    result = client.table("orders").select("id", count="exact").execute()
+    return int(result.count or 0)
 
 
 def fetch_refund_requests(status: str | None = "pending", limit: int = 50) -> list[dict[str, Any]]:

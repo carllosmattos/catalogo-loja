@@ -13,6 +13,7 @@ from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_s
 from lib.profit import calculate_profit
 from lib.sales import (
     cancel_sale,
+    count_sales,
     fetch_sales,
     gift_stock_ok_for_quantity,
     register_sale,
@@ -24,7 +25,14 @@ from lib.catalog import fetch_store_settings
 from lib.payments.admin import fetch_order_bundle_by_id, fetch_payment
 from lib.payments.factory import app_base_url
 from lib.payments.whatsapp_payment import build_whatsapp_payment_url
-from lib.utils import format_cpf, format_currency, is_valid_cpf, is_valid_email
+from lib.address import (
+    apply_address_to_session,
+    address_fields_from_session,
+    format_customer_address,
+    render_address_fields,
+)
+from lib.pagination import render_pagination
+from lib.pix_display import render_pix_payment
 
 configure_page("Admin — Vendas", layout="wide", sidebar_state="expanded")
 render_sidebar()
@@ -56,7 +64,6 @@ with tab_nova:
             "sale_cust_phone",
             "sale_cust_cpf",
             "sale_cust_email",
-            "sale_cust_address",
         ):
             if key not in st.session_state:
                 st.session_state[key] = ""
@@ -96,8 +103,8 @@ with tab_nova:
                 st.session_state.sale_cust_name = picked["name"]
                 st.session_state.sale_cust_phone = picked.get("phone", "")
                 st.session_state.sale_cust_cpf = format_cpf(picked["cpf"])
-                st.session_state.sale_cust_address = picked.get("address", "")
                 st.session_state.sale_cust_email = picked.get("email", "")
+                apply_address_to_session(picked, "sale_addr")
                 st.rerun()
 
         c1, c2, c3 = st.columns(3)
@@ -120,11 +127,8 @@ with tab_nova:
             key="sale_cust_email",
             placeholder="cliente@email.com",
         )
-        st.text_area(
-            "Endereço de entrega",
-            key="sale_cust_address",
-            placeholder="Rua, número, bairro, cidade…",
-        )
+        st.markdown("**Endereço de entrega**")
+        render_address_fields(None, key_prefix="sale_addr")
 
         st.markdown("---")
         st.subheader("Produto")
@@ -241,8 +245,11 @@ with tab_nova:
                 customer_name = st.session_state.get("sale_cust_name", "").strip()
                 customer_phone = st.session_state.get("sale_cust_phone", "")
                 customer_cpf = st.session_state.get("sale_cust_cpf", "")
-                customer_address = st.session_state.get("sale_cust_address", "")
+                customer_address = format_customer_address(
+                    {"address": "", **address_fields_from_session("sale_addr")}
+                )
                 customer_email = st.session_state.get("sale_cust_email", "")
+                addr_fields = address_fields_from_session("sale_addr")
 
                 if not customer_name:
                     st.error("Informe o nome do cliente.")
@@ -261,6 +268,7 @@ with tab_nova:
                             customer_cpf=customer_cpf,
                             customer_address=customer_address,
                             customer_email=customer_email,
+                            address_fields=addr_fields,
                             notes=notes,
                             quantity=quantity,
                             selected_size=selected_size,
@@ -269,12 +277,21 @@ with tab_nova:
                             "sale_cust_name",
                             "sale_cust_phone",
                             "sale_cust_cpf",
-                            "sale_cust_address",
                             "sale_cust_email",
                             "customer_search_results",
                             "customer_search_q",
                         ):
                             st.session_state.pop(key, None)
+                        for suffix in (
+                            "zip",
+                            "street",
+                            "number",
+                            "complement",
+                            "neighborhood",
+                            "city",
+                            "state",
+                        ):
+                            st.session_state.pop(f"sale_addr_{suffix}", None)
                         st.success(f"Venda registrada! ID: {sale_id[:8]}…")
                         st.balloons()
                         st.rerun()
@@ -293,7 +310,21 @@ with tab_historico:
     with col_b:
         hist_end = st.date_input("Até", value=date.today(), key="hist_end")
 
-    sales = fetch_sales(hist_start, hist_end)
+    if "hist_page" not in st.session_state:
+        st.session_state.hist_page = 0
+    page_size = 25
+    total = count_sales(hist_start, hist_end)
+    page = render_pagination(
+        state_key="hist_page",
+        page=st.session_state.hist_page,
+        total_items=total,
+        page_size=page_size,
+    )
+    st.session_state.hist_page = page
+
+    sales = fetch_sales(
+        hist_start, hist_end, limit=page_size, offset=page * page_size
+    )
     if not sales:
         st.info("Nenhuma venda no período.")
     else:
@@ -333,8 +364,10 @@ with tab_historico:
                         st.markdown("**Transação**")
                         st.markdown(f"Status: **{pay.get('status')}** · MP: `{pay.get('provider_payment_id')}`")
                         if pay.get("pix_copy_paste"):
-                            st.caption("PIX copia e cola:")
-                            st.code(pay["pix_copy_paste"], language=None)
+                            render_pix_payment(
+                                pay["pix_copy_paste"],
+                                key=f"sale_pix_{s['id']}",
+                            )
                 if s.get("order_id"):
                     settings = fetch_store_settings()
                     wa = settings.get("whatsapp_number", "")
@@ -476,7 +509,25 @@ with tab_canceladas:
     with col_c2:
         cancel_end = st.date_input("Até", value=date.today(), key="cancel_end")
 
-    cancelled = fetch_sales(cancel_start, cancel_end, cancelled_only=True)
+    if "cancel_page" not in st.session_state:
+        st.session_state.cancel_page = 0
+    cancel_page_size = 25
+    cancel_total = count_sales(cancel_start, cancel_end, cancelled_only=True)
+    cancel_page = render_pagination(
+        state_key="cancel_page",
+        page=st.session_state.cancel_page,
+        total_items=cancel_total,
+        page_size=cancel_page_size,
+    )
+    st.session_state.cancel_page = cancel_page
+
+    cancelled = fetch_sales(
+        cancel_start,
+        cancel_end,
+        cancelled_only=True,
+        limit=cancel_page_size,
+        offset=cancel_page * cancel_page_size,
+    )
     st.caption("Vendas canceladas não entram nos relatórios. Estoque foi devolvido.")
     if not cancelled:
         st.info("Nenhuma venda cancelada no período.")

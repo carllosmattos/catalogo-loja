@@ -33,11 +33,19 @@ def _valid_tracking_token(token: str | None) -> str | None:
     return cleaned
 
 
-def create_checkout_order(customer_id: str, items: list[dict[str, Any]]) -> dict[str, Any]:
+def create_checkout_order(
+    customer_id: str,
+    items: list[dict[str, Any]],
+    shipping_amount: float = 0,
+) -> dict[str, Any]:
     client = get_supabase()
     result = client.rpc(
         "create_checkout_order",
-        {"p_customer_id": customer_id, "p_items": items},
+        {
+            "p_customer_id": customer_id,
+            "p_items": items,
+            "p_shipping_amount": round(float(shipping_amount), 2),
+        },
     ).execute()
     data = _parse_rpc_payload(result.data)
     if isinstance(data, list):
@@ -55,19 +63,20 @@ def attach_payment_to_order(
     amount: float,
     pix_copy_paste: str = "",
     raw: dict | None = None,
+    expires_at: str | None = None,
 ) -> str:
     client = get_supabase()
-    result = client.rpc(
-        "attach_order_payment_public",
-        {
-            "p_order_id": order_id,
-            "p_provider_payment_id": provider_payment_id,
-            "p_status": status,
-            "p_amount": amount,
-            "p_pix_copy_paste": pix_copy_paste,
-            "p_raw": raw or {},
-        },
-    ).execute()
+    payload: dict[str, Any] = {
+        "p_order_id": order_id,
+        "p_provider_payment_id": provider_payment_id,
+        "p_status": status,
+        "p_amount": amount,
+        "p_pix_copy_paste": pix_copy_paste,
+        "p_raw": raw or {},
+    }
+    if expires_at:
+        payload["p_expires_at"] = expires_at
+    result = client.rpc("attach_order_payment_public", payload).execute()
     pid = result.data
     if isinstance(pid, list):
         pid = pid[0] if pid else None

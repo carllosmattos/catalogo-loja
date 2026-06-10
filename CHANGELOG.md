@@ -8,6 +8,15 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ### Adicionado
 
+- **Admin UX (Fase 1)** — endereço estruturado em vendas, botão Copiar PIX, carrossel CSS, paginação em histórico/pagamentos
+- **PIX com expiração (Fase 2)** — 15 min, sync de status com Mercado Pago, anti-duplicata de checkout
+- **Frete (Fase 3)** — zonas grátis/pago/bloqueado por país/UF/cidade/bairro, Melhor Envio, admin Frete
+- **Reserva de estoque (Fase 4)** — reserva durante PIX pendente, libera ao expirar/cancelar
+- Migrações `024_pix_orders.sql`, `025_shipping_zones.sql`, `026_stock_reservation.sql`
+- Página admin **Frete** (`pages/9_Admin_Frete.py`)
+
+### Adicionado (anterior)
+
 - **Tamanho único (U)** — estoque, cadastro admin, seleção no catálogo e vendas; botão desabilitado quando esgotado
 - Migração `014_size_unique.sql`
 - **E-mail do cliente** — Minha conta e admin vendas (obrigatório para Mercado Pago)

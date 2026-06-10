@@ -7,6 +7,7 @@ from typing import Any
 import streamlit as st
 
 from lib.feedback import catalog_toast, flash_toast
+from lib.pix_display import render_pix_payment
 from lib.payments.factory import app_base_url, payments_enabled
 from lib.payments.orders_db import cancel_order, get_order_bundle, list_customer_orders, request_refund
 from lib.payments.whatsapp_payment import build_whatsapp_payment_url
@@ -40,7 +41,14 @@ def render_order_detail(
     token = str(order.get("tracking_token", ""))
 
     st.markdown(f"**Status:** {_status_badge(status)}")
+    shipping_amt = float(order.get("shipping_amount") or 0)
+    if shipping_amt > 0:
+        st.markdown(f"**Frete:** {format_currency(shipping_amt)}")
     st.markdown(f"**Total:** {format_currency(float(order.get('total_amount', 0)))}")
+    expires_at = order.get("expires_at") or payment.get("expires_at")
+    if status == "pending_payment" and expires_at:
+        exp_label = str(expires_at)[:16].replace("T", " ")
+        st.caption(f"PIX válido até {exp_label} (horário de Brasília)")
 
     for item in items:
         qty = int(item.get("quantity", 1))
@@ -53,7 +61,14 @@ def render_order_detail(
     pix = payment.get("pix_copy_paste") or ""
     if status == "pending_payment" and pix:
         st.subheader("PIX copia e cola")
-        st.code(pix, language=None)
+        qr = payment.get("qr_code_base64") or None
+        if not qr:
+            raw = payment.get("raw_payload") or {}
+            if isinstance(raw, dict):
+                poi = raw.get("point_of_interaction") or {}
+                tx = poi.get("transaction_data") or {}
+                qr = tx.get("qr_code_base64")
+        render_pix_payment(pix, key=f"{key_prefix}_pix_{oid}", qr_base64=qr)
 
     base = app_base_url()
     track_url = f"{base}?order={token}&view=Minhas%20compras" if base and token else ""
@@ -82,22 +97,24 @@ def render_order_detail(
                     key=f"{key_prefix}_refresh_{oid}",
                     use_container_width=True,
                 ):
-                    mp_id = payment.get("provider_payment_id")
-                    if mp_id:
-                        try:
-                            from lib.payments.factory import get_payment_gateway, payments_enabled
-                            from lib.payments.mercado_pago.mapper import map_mp_status
+                    try:
+                        from lib.payments.sync import sync_order_payment
 
-                            if payments_enabled():
-                                mp = get_payment_gateway().get_payment(str(mp_id))
-                                mp_status = map_mp_status(mp.get("status", ""))
-                                catalog_toast(
-                                    "info",
-                                    f"Status no Mercado Pago: {mp_status}. "
-                                    "Se já pagou, aguarde a confirmação.",
-                                )
-                        except Exception as e:
-                            catalog_toast("error", str(e))
+                        result = sync_order_payment(
+                            oid,
+                            customer_id=str(customer_id),
+                            provider_payment_id=payment.get("provider_payment_id"),
+                        )
+                        new_status = result.get("status", "")
+                        if result.get("already_fulfilled") or new_status == "approved":
+                            flash_toast("success", "Pagamento confirmado!")
+                        else:
+                            catalog_toast(
+                                "info",
+                                f"Status atualizado: {new_status or 'pendente'}.",
+                            )
+                    except Exception as e:
+                        catalog_toast("error", str(e))
                     st.rerun()
             with col_cancel:
                 if st.button(

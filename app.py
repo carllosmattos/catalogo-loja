@@ -49,6 +49,7 @@ from lib.payments.checkout import (
     start_checkout,
 )
 from lib.payments.factory import payments_enabled
+from lib.shipping import calculate_shipping
 from lib.profit import calculate_profit
 from lib.product_sizes import SIZES, size_display_label, stock_for_size, total_stock
 from lib.social import render_developer_footer, render_store_social_bar
@@ -270,9 +271,34 @@ elif view == "Carrinho":
             st.markdown("")
 
         st.markdown('<div class="cart-summary">', unsafe_allow_html=True)
+        shipping_preview = None
+        if catalog_customer and customer_profile_complete(catalog_customer):
+            try:
+                products_map = {
+                    str(p["id"]): p for p in fetch_products(active_only=True)
+                }
+                preview_lines = build_lines_from_cart(cart, products_map)
+                shipping_preview = calculate_shipping(catalog_customer, preview_lines)
+            except Exception:
+                shipping_preview = None
+
+        if shipping_preview:
+            if shipping_preview.blocked:
+                st.warning(shipping_preview.label or "Endereço fora da área de entrega.")
+            elif shipping_preview.amount > 0:
+                st.markdown(
+                    f"**Frete:** {format_currency(shipping_preview.amount)}"
+                    + (f" — {shipping_preview.label}" if shipping_preview.label else "")
+                )
+            elif shipping_preview.label:
+                st.caption(shipping_preview.label)
+
+        cart_total = float(totals["total"])
+        if shipping_preview and not shipping_preview.blocked:
+            cart_total += shipping_preview.amount
         st.markdown(
             f"**Total ({totals['pieces']} peça(s)):** "
-            f"{format_currency(totals['total'])}"
+            f"{format_currency(cart_total)}"
         )
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -280,11 +306,15 @@ elif view == "Carrinho":
         col_pay, col_wa, col_clear = st.columns([2, 1, 1])
         with col_pay:
             if pay_ok:
+                pay_blocked = bool(
+                    shipping_preview and shipping_preview.blocked
+                )
                 if st.button(
                     "Pagar com PIX",
                     type="primary",
                     use_container_width=True,
                     key="cart_pay_pix",
+                    disabled=pay_blocked,
                 ):
                     if not customer_profile_complete(catalog_customer):
                         flash_toast(
