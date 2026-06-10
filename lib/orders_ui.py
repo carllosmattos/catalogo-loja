@@ -30,6 +30,7 @@ def render_order_detail(
     customer_id: str | None,
     whatsapp_number: str,
     store_name: str,
+    key_prefix: str = "order",
 ) -> None:
     order = bundle.get("order") or {}
     items = bundle.get("items") or []
@@ -69,13 +70,18 @@ def render_order_detail(
             wa_url,
             use_container_width=True,
             type="primary",
+            key=f"{key_prefix}_wa_{oid}",
         )
 
     if customer_id and str(order.get("customer_id")) == str(customer_id):
         if status == "pending_payment":
             col_cancel, col_refresh = st.columns(2)
             with col_refresh:
-                if st.button("Atualizar status", key=f"refresh_{oid}", use_container_width=True):
+                if st.button(
+                    "Atualizar status",
+                    key=f"{key_prefix}_refresh_{oid}",
+                    use_container_width=True,
+                ):
                     mp_id = payment.get("provider_payment_id")
                     if mp_id:
                         try:
@@ -94,7 +100,11 @@ def render_order_detail(
                             catalog_toast("error", str(e))
                     st.rerun()
             with col_cancel:
-                if st.button("Cancelar pedido", key=f"cancel_{oid}", use_container_width=True):
+                if st.button(
+                    "Cancelar pedido",
+                    key=f"{key_prefix}_cancel_{oid}",
+                    use_container_width=True,
+                ):
                     try:
                         cancel_order(
                             customer_id,
@@ -107,7 +117,7 @@ def render_order_detail(
                         flash_toast("error", str(e))
                         st.rerun()
         elif status == "paid":
-            with st.form(f"refund_{oid}"):
+            with st.form(f"{key_prefix}_refund_{oid}"):
                 reason = st.text_area("Motivo do reembolso", height=80)
                 if st.form_submit_button("Solicitar reembolso", use_container_width=True):
                     try:
@@ -140,6 +150,7 @@ def render_my_orders(
                 customer_id=customer_id,
                 whatsapp_number=whatsapp_number,
                 store_name=store_name,
+                key_prefix="highlight",
             )
             st.markdown("---")
         else:
@@ -158,7 +169,7 @@ def render_my_orders(
         return
 
     st.subheader("Minhas compras")
-    for row in rows:
+    for idx, row in enumerate(rows):
         if not isinstance(row, dict):
             continue
         order = row.get("order") or {}
@@ -176,6 +187,7 @@ def render_my_orders(
                     customer_id=customer_id,
                     whatsapp_number=whatsapp_number,
                     store_name=store_name,
+                    key_prefix=f"list_{idx}_{token[:8]}",
                 )
             else:
                 st.caption("Detalhes indisponíveis.")
