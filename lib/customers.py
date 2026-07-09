@@ -87,8 +87,12 @@ def upsert_customer(
     cpf: str,
     address: str = "",
     email: str = "",
+    *,
+    address_fields: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Cria ou atualiza cliente pelo CPF."""
+    from lib.address import _format_address_lines
+
     normalized = normalize_cpf(cpf)
     if not normalized:
         raise ValueError("CPF inválido.")
@@ -99,12 +103,22 @@ def upsert_customer(
     phone_clean = parse_whatsapp_number(phone)
     existing = get_customer_by_cpf(normalized)
 
+    addr = address_fields or {}
+    formatted = _format_address_lines(addr) if any(addr.values()) else address.strip()
+
     payload = {
         "name": name.strip(),
         "phone": phone_clean,
         "cpf": normalized,
-        "address": address.strip(),
+        "address": formatted,
         "email": normalize_email(email),
+        "address_zip": "".join(c for c in addr.get("zip", "") if c.isdigit()),
+        "address_street": addr.get("street", "").strip(),
+        "address_number": addr.get("number", "").strip(),
+        "address_complement": addr.get("complement", "").strip(),
+        "address_neighborhood": addr.get("neighborhood", "").strip(),
+        "address_city": addr.get("city", "").strip(),
+        "address_state": (addr.get("state", "") or "").upper().strip(),
     }
 
     if existing:

@@ -12,6 +12,9 @@ from lib.payments.orders_db import (
     create_checkout_order,
     get_order_bundle,
 )
+from lib.shipping import calculate_shipping
+
+PIX_EXPIRY_MINUTES = 15
 from lib.profit import calculate_profit, extract_gift_from_link
 
 
@@ -107,10 +110,19 @@ def start_checkout(
     if not customer_id:
         raise ValueError("Complete seu cadastro em Minha conta.")
 
-    created = create_checkout_order(str(customer_id), lines)
+    shipping = calculate_shipping(customer, lines)
+    if shipping.blocked:
+        raise ValueError(
+            shipping.label or "Não entregamos neste endereço. Atualize em Minha conta."
+        )
+
+    created = create_checkout_order(
+        str(customer_id), lines, shipping_amount=shipping.amount
+    )
     order_id = str(created["order_id"])
     tracking_token = str(created["tracking_token"])
     total = float(created["total_amount"])
+    expires_at = str(created.get("expires_at") or "")
 
     base = app_base_url()
     payer = CheckoutPayer(
@@ -123,6 +135,12 @@ def start_checkout(
     if len(lines) == 1:
         desc = lines[0].get("product_name", desc)
 
+    from datetime import datetime, timedelta, timezone
+
+    br_tz = timezone(timedelta(hours=-3))
+    exp_dt = datetime.now(br_tz) + timedelta(minutes=PIX_EXPIRY_MINUTES)
+    expires_iso = exp_dt.strftime("%Y-%m-%dT%H:%M:%S.000-03:00")
+
     gateway = get_payment_gateway()
     result = gateway.create_pix_checkout(
         CheckoutRequest(
@@ -132,6 +150,7 @@ def start_checkout(
             payer=payer,
             notification_url=webhook_notification_url(),
             back_url_success=f"{base}?order={tracking_token}&view=Minhas%20compras" if base else "",
+            expires_at_iso=expires_iso,
         )
     )
 
@@ -142,6 +161,7 @@ def start_checkout(
         amount=total,
         pix_copy_paste=result.pix_copy_paste,
         raw=result.raw,
+        expires_at=expires_at or expires_iso,
     )
 
     return {
@@ -152,6 +172,9 @@ def start_checkout(
         "ticket_url": result.ticket_url,
         "provider_payment_id": result.provider_payment_id,
         "total": total,
+        "shipping_amount": shipping.amount,
+        "shipping_label": shipping.label,
+        "expires_at": expires_at or expires_iso,
     }
 
 

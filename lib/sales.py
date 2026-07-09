@@ -33,6 +33,7 @@ def register_sale(
     customer_cpf: str = "",
     customer_address: str = "",
     customer_email: str = "",
+    address_fields: dict[str, str] | None = None,
     notes: str = "",
     quantity: int = 1,
     *,
@@ -54,6 +55,7 @@ def register_sale(
         cpf_normalized,
         customer_address,
         customer_email,
+        address_fields=address_fields,
     )
 
     client = get_authenticated_client()
@@ -132,7 +134,8 @@ def cancel_sale(sale_id: str) -> None:
 def fetch_sales(
     start: date | None = None,
     end: date | None = None,
-    limit: int = 200,
+    limit: int = 25,
+    offset: int = 0,
     include_cancelled: bool = False,
     cancelled_only: bool = False,
 ) -> list[dict[str, Any]]:
@@ -141,7 +144,7 @@ def fetch_sales(
         client.table("sales")
         .select("*, sale_gifts(*)")
         .order("created_at", desc=True)
-        .limit(limit)
+        .range(offset, offset + max(limit, 1) - 1)
     )
     if cancelled_only:
         query = query.not_.is_("cancelled_at", "null")
@@ -152,6 +155,26 @@ def fetch_sales(
     if end:
         query = query.lte("created_at", datetime.combine(end, time.max).isoformat())
     return query.execute().data or []
+
+
+def count_sales(
+    start: date | None = None,
+    end: date | None = None,
+    include_cancelled: bool = False,
+    cancelled_only: bool = False,
+) -> int:
+    client = get_authenticated_client()
+    query = client.table("sales").select("id", count="exact")
+    if cancelled_only:
+        query = query.not_.is_("cancelled_at", "null")
+    elif not include_cancelled:
+        query = query.is_("cancelled_at", "null")
+    if start:
+        query = query.gte("created_at", datetime.combine(start, time.min).isoformat())
+    if end:
+        query = query.lte("created_at", datetime.combine(end, time.max).isoformat())
+    result = query.execute()
+    return int(result.count or 0)
 
 
 def sales_summary(sales: list[dict[str, Any]]) -> dict[str, float]:

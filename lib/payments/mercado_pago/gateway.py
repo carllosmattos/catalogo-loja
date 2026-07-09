@@ -36,6 +36,8 @@ class MercadoPagoGateway(PaymentGateway):
         }
         if request.notification_url:
             payment_data["notification_url"] = request.notification_url
+        if request.expires_at_iso:
+            payment_data["date_of_expiration"] = request.expires_at_iso
 
         response = self._sdk.payment().create(payment_data)
         payment = response.get("response") or {}

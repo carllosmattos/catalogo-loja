@@ -33,6 +33,7 @@ class CheckoutRequest:
     notification_url: str = ""
     back_url_success: str = ""
     back_url_failure: str = ""
+    expires_at_iso: str = ""
 
 
 @dataclass

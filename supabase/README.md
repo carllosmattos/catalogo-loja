@@ -28,6 +28,9 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 020 | [`migrations/020_fix_get_order_by_tracking.sql`](migrations/020_fix_get_order_by_tracking.sql) | Corrige RPC `get_order_by_tracking` (token da URL) |
 | 021 | [`migrations/021_phone_lookup_and_payment_rpcs.sql`](migrations/021_phone_lookup_and_payment_rpcs.sql) | Telefone normalizado + RPCs de pedidos (reparo) |
 | 023 | [`migrations/023_customer_address_fields.sql`](migrations/023_customer_address_fields.sql) | Endereço com campos separados (CEP, rua, etc.) |
+| 024 | [`migrations/024_pix_orders.sql`](migrations/024_pix_orders.sql) | PIX com expiração (15 min), sync de status, anti-duplicata |
+| 025 | [`migrations/025_shipping_zones.sql`](migrations/025_shipping_zones.sql) | Zonas de frete (grátis/pago/bloqueado) + endereço remetente |
+| 026 | [`migrations/026_stock_reservation.sql`](migrations/026_stock_reservation.sql) | Reserva temporária de estoque durante o PIX |
 
 ## Já rodou o schema antes?
 
@@ -54,6 +57,25 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Erro ao abrir pedido pelo link `?order=` → **020**
 - Login por telefone não encontra cliente / erro em Minhas compras → **021**
 - Endereço estruturado no cadastro → **023**
+- PIX expira em 15 min / botão Atualizar status não confirma pagamento → **024**
+- Frete por região ou Melhor Envio → **025**
+- Dois clientes comprando o último item ao mesmo tempo → **026**
+
+## Secrets opcionais (Streamlit Cloud)
+
+Além de `SUPABASE_URL` e `SUPABASE_ANON_KEY`, para pagamentos e frete:
+
+```toml
+MERCADOPAGO_ACCESS_TOKEN = "..."
+MERCADOPAGO_WEBHOOK_URL = "https://<projeto>.supabase.co/functions/v1/mercadopago-webhook"
+APP_BASE_URL = "https://seu-app.streamlit.app"
+PAYMENTS_ENABLED = true
+
+# Opcional — cotação automática quando não houver zona de frete
+MELHOR_ENVIO_TOKEN = "..."
+```
+
+Ative **Melhor Envio** em Admin → Frete após configurar o token.
 
 ## Projeto do zero
 

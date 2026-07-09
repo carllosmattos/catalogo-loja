@@ -172,18 +172,18 @@ def resolve_catalog_banner(
 ) -> dict:
     """
     Define qual banner exibir no catálogo.
-    Prioridade: promoções > banners da loja > legacy (logo+nome).
+    Prioridade: carrossel da loja (2+) > promoções > banner único > legacy.
     """
-    promo_urls = resolve_promo_banners(promotions)
-    if len(promo_urls) >= 2:
-        return {"mode": "carousel", "urls": promo_urls}
-    if len(promo_urls) == 1:
-        return {"mode": "single", "urls": promo_urls}
-
     store_urls = resolve_store_banner_urls(settings, store_banners)
     if len(store_urls) >= 2:
         return {"mode": "carousel", "urls": store_urls}
+
+    promo_urls = resolve_promo_banners(promotions)
+    if len(promo_urls) >= 2:
+        return {"mode": "carousel", "urls": promo_urls}
     if len(store_urls) == 1:
         return {"mode": "single", "urls": store_urls}
+    if len(promo_urls) == 1:
+        return {"mode": "single", "urls": promo_urls}
 
     return {"mode": "legacy", "urls": []}

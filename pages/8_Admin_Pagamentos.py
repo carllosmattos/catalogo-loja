@@ -6,12 +6,16 @@ from lib.auth import require_auth, render_sidebar
 from lib.branding import configure_page
 from lib.payments.admin import (
     approve_refund_request,
+    count_orders,
+    count_payments,
     fetch_order_bundle_by_id,
     fetch_orders,
     fetch_payments,
     fetch_refund_requests,
     reject_refund_request,
 )
+from lib.pagination import render_pagination
+from lib.pix_display import render_pix_payment
 from lib.payments.factory import app_base_url, payments_enabled, webhook_notification_url
 from lib.utils import format_currency
 
@@ -28,7 +32,18 @@ tab_orders, tab_tx, tab_refund, tab_cfg = st.tabs(
 )
 
 with tab_orders:
-    orders = fetch_orders(80)
+    if "orders_page" not in st.session_state:
+        st.session_state.orders_page = 0
+    page_size = 25
+    total_orders = count_orders()
+    page = render_pagination(
+        state_key="orders_page",
+        page=st.session_state.orders_page,
+        total_items=total_orders,
+        page_size=page_size,
+    )
+    st.session_state.orders_page = page
+    orders = fetch_orders(page_size, page * page_size)
     if not orders:
         st.info("Nenhum pedido online registrado.")
     else:
@@ -50,13 +65,37 @@ with tab_orders:
                 st.markdown(f"**Itens:** {item_lines or '—'}")
                 st.markdown(f"**Pagamento:** {pay.get('status', '—')} — MP `{pay.get('provider_payment_id') or '—'}`")
                 if pay.get("pix_copy_paste"):
-                    st.code(pay["pix_copy_paste"], language=None)
+                    render_pix_payment(
+                        pay["pix_copy_paste"],
+                        key=f"order_pix_{o['id']}",
+                    )
+                if o.get("status") == "pending_payment" and pay.get("provider_payment_id"):
+                    if st.button("Sincronizar com MP", key=f"sync_order_{o['id']}"):
+                        try:
+                            from lib.payments.sync import sync_order_payment
+
+                            sync_order_payment(str(o["id"]))
+                            st.success("Status sincronizado.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
                 bundle = fetch_order_bundle_by_id(str(o["id"]))
                 if bundle:
                     st.caption(f"Pedido `{o['id']}` · tracking `{o.get('tracking_token', '')}`")
 
 with tab_tx:
-    payments = fetch_payments(80)
+    if "payments_page" not in st.session_state:
+        st.session_state.payments_page = 0
+    page_size = 25
+    total_payments = count_payments()
+    page = render_pagination(
+        state_key="payments_page",
+        page=st.session_state.payments_page,
+        total_items=total_payments,
+        page_size=page_size,
+    )
+    st.session_state.payments_page = page
+    payments = fetch_payments(page_size, page * page_size)
     if not payments:
         st.info("Nenhuma transação registrada.")
     else:
@@ -73,7 +112,10 @@ with tab_tx:
                 st.markdown(f"**Pedido:** `{p.get('order_id')}`")
                 st.markdown(f"**Cliente:** {order.get('customer_name')} — {order.get('customer_email')}")
                 if p.get("pix_copy_paste"):
-                    st.code(p["pix_copy_paste"], language=None)
+                    render_pix_payment(
+                        p["pix_copy_paste"],
+                        key=f"pay_pix_{p['id']}",
+                    )
                 if order.get("id"):
                     from lib.catalog import fetch_store_settings
                     from lib.payments.whatsapp_payment import build_whatsapp_payment_url
