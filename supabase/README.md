@@ -31,6 +31,7 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 024 | [`migrations/024_pix_orders.sql`](migrations/024_pix_orders.sql) | PIX com expiração (15 min), sync de status, anti-duplicata |
 | 025 | [`migrations/025_shipping_zones.sql`](migrations/025_shipping_zones.sql) | Zonas de frete (grátis/pago/bloqueado) + endereço remetente |
 | 026 | [`migrations/026_stock_reservation.sql`](migrations/026_stock_reservation.sql) | Reserva temporária de estoque durante o PIX |
+| 027 | [`migrations/027_customer_delete_order.sql`](migrations/027_customer_delete_order.sql) | Cliente pode excluir pedido da lista (soft-delete) |
 
 ## Já rodou o schema antes?
 
@@ -60,6 +61,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - PIX expira em 15 min / botão Atualizar status não confirma pagamento → **024**
 - Frete por região ou Melhor Envio → **025**
 - Dois clientes comprando o último item ao mesmo tempo → **026**
+- Cliente quer excluir pedido da lista (Minhas compras) → **027**
 
 ## Secrets opcionais (Streamlit Cloud)
 
