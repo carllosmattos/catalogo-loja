@@ -1,7 +1,7 @@
 -- 029_coupons_auth_dispatch.sql
 -- Cupons, login e-mail/senha do cliente, desconto no pedido e dias de coleta/envio.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 -- ── Cliente: senha + vínculo auth opcional ───────────────────
 ALTER TABLE customers
@@ -222,7 +222,7 @@ CREATE OR REPLACE FUNCTION register_customer_account(
 ) RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_email TEXT := lower(trim(COALESCE(p_email, '')));
@@ -290,7 +290,7 @@ CREATE OR REPLACE FUNCTION login_customer_account(p_email TEXT, p_password TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_email TEXT := lower(trim(COALESCE(p_email, '')));
