@@ -32,6 +32,7 @@ Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 | 025 | [`migrations/025_shipping_zones.sql`](migrations/025_shipping_zones.sql) | Zonas de frete (grátis/pago/bloqueado) + endereço remetente |
 | 026 | [`migrations/026_stock_reservation.sql`](migrations/026_stock_reservation.sql) | Reserva temporária de estoque durante o PIX |
 | 027 | [`migrations/027_customer_delete_order.sql`](migrations/027_customer_delete_order.sql) | Cliente pode excluir pedido da lista (soft-delete) |
+| 028 | [`migrations/028_melhor_envio_oauth.sql`](migrations/028_melhor_envio_oauth.sql) | Credenciais OAuth Melhor Envio (tokens com refresh) |
 
 ## Já rodou o schema antes?
 
@@ -62,6 +63,7 @@ Não execute o **001** de novo. Rode apenas o que ainda falta:
 - Frete por região ou Melhor Envio → **025**
 - Dois clientes comprando o último item ao mesmo tempo → **026**
 - Cliente quer excluir pedido da lista (Minhas compras) → **027**
+- Conectar Melhor Envio via OAuth (tokens com refresh) → **028**
 
 ## Secrets opcionais (Streamlit Cloud)
 
@@ -73,11 +75,13 @@ MERCADOPAGO_WEBHOOK_URL = "https://<projeto>.supabase.co/functions/v1/mercadopag
 APP_BASE_URL = "https://seu-app.streamlit.app"
 PAYMENTS_ENABLED = true
 
-# Opcional — cotação automática quando não houver zona de frete
-MELHOR_ENVIO_TOKEN = "..."
+# Opcional — Melhor Envio (preferir OAuth no admin da loja web)
+MELHOR_ENVIO_CLIENT_ID = "..."
+MELHOR_ENVIO_CLIENT_SECRET = "..."
+# MELHOR_ENVIO_TOKEN = "..."  # legado / teste rápido
 ```
 
-Ative **Melhor Envio** em Admin → Frete após configurar o token.
+Ative **Melhor Envio** em Admin → Frete e clique em **Conectar Melhor Envio** (OAuth).
 
 ## Projeto do zero
 
