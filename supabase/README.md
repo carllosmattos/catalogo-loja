@@ -1,5 +1,9 @@
 # Migrações Supabase
 
+> **Fonte de verdade da loja em produção:**  
+> `catalogo-loja-web/supabase/` (Next.js).  
+> Esta pasta no repo Streamlit é espelho legado — **novas** migrations devem ir primeiro no web.
+
 Scripts versionados em ordem numérica. Execute no **SQL Editor** do Supabase.
 
 ## Ordem de execução
